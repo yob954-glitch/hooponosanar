@@ -1338,7 +1338,9 @@ function parseIaJSON(text){
 
 function iaPanelHtml(entry){
   if(!entry.iaValidation){
+    var debil=!entry.r.tops.length;
     return '<p style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">La IA cruza estos picks estadísticos con criterio futbolístico general y descarta los que no le den confianza real, para quedarte solo con los más seguros.</p>'
+      +(debil?'<div style="background:#fbbf2412;border:1px solid #fbbf2444;border-radius:9px;padding:9px 10px;margin-bottom:10px;font-size:10.5px;color:#fbbf24;line-height:1.5">⚠️ Este partido no tiene picks que superen tu umbral de seguridad ('+THRESHOLD+'%). Puedes igual pedirle una opinión a la IA sobre los mejores disponibles, pero es probable que los rechace — eso también es información útil (te dice que mejor no juegues este partido).</div>':'')
       +'<button onclick="iniciarValidacionIA(\''+entry.game.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#00e87a);border:none;border-radius:10px;color:#04040f;font-size:13px;font-weight:800;cursor:pointer">🤖 Validar picks con IA</button>';
   }
   var items=entry.iaValidation.items||[];
@@ -1377,15 +1379,18 @@ function iniciarValidacionIA(gameId){
   var target=document.getElementById('ia-result');
   if(target)target.innerHTML='<div style="text-align:center;padding:16px 0"><span class="spin" style="font-size:22px;display:block;margin-bottom:8px">⟳</span><p style="font-size:11px;color:var(--text3)">Analizando picks con IA...</p></div>';
 
-  var candidatos=(entry.r.tops.length?entry.r.tops:entry.r.picks.filter(function(m){return !m.esReferencia;})).slice(0,6);
+  var candidatos=(entry.r.tops.length?entry.r.tops:entry.r.picks).slice(0,6);
   if(!candidatos.length){
-    if(target)target.innerHTML='<p style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0">No hay picks con suficiente base estadística para validar con IA.</p>';
+    if(target)target.innerHTML='<p style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0">Este partido no generó ningún mercado calculable para validar con IA.</p>';
     return;
   }
 
   var game=entry.game;
-  var lista=candidatos.map(function(m,i){return (i+1)+'. '+m.label+' — prob. estadística '+m.prob.toFixed(1)+'%, cuota estimada '+m.cuota.toFixed(2)+' ('+m.cat+')';}).join('\n');
-  var sys='Eres un analista senior de apuestas deportivas, extremadamente conservador. Tu trabajo es auditar picks generados por un modelo Poisson y detectar cuáles son realmente confiables, usando criterio futbolístico general (nivel de los equipos, contexto de la competición, sentido común). Si tienes cualquier duda razonable sobre un pick, recházalo. Responde EXCLUSIVAMENTE con un JSON válido, sin texto fuera del JSON, con este formato exacto: {"validaciones":[{"label":"texto exacto del pick","aprobado":true,"confianza_ia":0,"motivo":"máx 18 palabras"}]}';
+  var lista=candidatos.map(function(m,i){
+    var flag=m.esReferencia?' [OJO: está por DEBAJO del umbral de seguridad de la app ('+THRESHOLD+'%), es solo referencia — sé especialmente estricto con este]':'';
+    return (i+1)+'. '+m.label+' — prob. estadística '+m.prob.toFixed(1)+'%, cuota estimada '+m.cuota.toFixed(2)+' ('+m.cat+')'+flag;
+  }).join('\n');
+  var sys='Eres un analista senior de apuestas deportivas, extremadamente conservador. Tu trabajo es auditar picks generados por un modelo Poisson y detectar cuáles son realmente confiables, usando criterio futbolístico general (nivel de los equipos, contexto de la competición, sentido común). Si tienes cualquier duda razonable sobre un pick, recházalo. Si un pick está marcado como por debajo del umbral de seguridad, recházalo salvo que tengas una razón muy fuerte para aprobarlo. Responde EXCLUSIVAMENTE con un JSON válido, sin texto fuera del JSON, con este formato exacto: {"validaciones":[{"label":"texto exacto del pick","aprobado":true,"confianza_ia":0,"motivo":"máx 18 palabras"}]}';
   var usr='Partido: '+game.home_team+' vs '+game.away_team+'\nCompetición: '+(entry.liga||'')+'\nPicks a validar:\n'+lista;
 
   callIA(sys,usr).then(function(text){
