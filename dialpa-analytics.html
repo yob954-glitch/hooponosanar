@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Dialpa Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#04040f;--bg2:#08081a;--bg3:#0d0d24;
+  --border:#1a1a42;--purple:#6366f1;--purple2:#818cf8;
+  --green:#00e87a;--yellow:#fbbf24;--red:#ff4060;--blue:#38bdf8;
+  --text:#eeeeff;--text2:#aaaacc;--text3:#6666aa;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+input,select,button{font-family:'Inter',sans-serif}
+input::placeholder{color:var(--text3)}
+input:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 2px #6366f122}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.5}}
+.fade-up{animation:fadeUp .35s ease both}
+.spin{display:inline-block;animation:spin .9s linear infinite}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(4,4,15,.97);
+  backdrop-filter:blur(16px);border-top:1px solid var(--border);
+  display:flex;z-index:300}
+.bnav-btn{flex:1;padding:9px 0 7px;border:none;background:transparent;cursor:pointer;
+  color:var(--text3);font-size:9px;font-weight:700;letter-spacing:.5px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .2s}
+.bnav-btn.active{color:var(--purple2)}
+.bnav-btn .ic{font-size:17px;line-height:1}
+.page{display:none;max-width:700px;margin:0 auto;padding:12px 12px 82px}
+.page.active{display:block}
+.liga-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.liga-scroll::-webkit-scrollbar{display:none}
+.lpill{padding:7px 13px;border-radius:99px;border:1px solid var(--border);
+  background:transparent;color:var(--text3);font-size:11px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.lpill.active{border-color:var(--purple);background:#6366f118;color:var(--purple2)}
+.card{background:linear-gradient(135deg,#07071a,#0d0d28);
+  border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:10px}
+.card.hot{border-color:#00e87a44;box-shadow:0 0 20px #00e87a0D}
+.overlay{display:none;position:fixed;inset:0;background:#04040fee;z-index:500;overflow-y:auto;padding:14px 12px 90px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="position:sticky;top:0;z-index:200;
+  background:linear-gradient(180deg,rgba(4,4,15,.97),rgba(4,4,15,.75));
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 14px">
+  <div style="max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:4px;height:36px;background:linear-gradient(180deg,#6366f1,#00e87a);border-radius:99px"></div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:900;letter-spacing:1px;line-height:1">
+          DIALPA <span style="background:linear-gradient(90deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ANALYTICS</span>
+        </div>
+        <div style="font-size:8px;color:var(--text3);letter-spacing:1.8px">POISSON ENGINE + IA · PICKS VALIDADOS</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="text-align:right;cursor:pointer" onclick="showIaModal()">
+        <div style="font-size:8px;color:var(--text3);letter-spacing:1px">VALIDADOR IA</div>
+        <div id="ia-disp" style="font-size:12px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--text3)">⚪ Sin config.</div>
+      </div>
+      <div style="text-align:right;cursor:pointer" onclick="showThrModal()">
+        <div style="font-size:8px;color:var(--text3);letter-spacing:1px">UMBRAL STATS</div>
+        <div id="thr-disp" style="font-size:15px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--green)">≥70%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: SCANNER -->
+<div id="page-scan" class="page">
+  <div style="margin-bottom:10px">
+    <div style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px">Liga a escanear</div>
+    <div class="liga-scroll" id="liga-tabs"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:5px">
+    <div style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:5px">
+      <span id="scan-dot" style="width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite;display:inline-block"></span>
+      <span id="scan-status">Selecciona una liga</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span id="next-refresh" style="font-size:9px;color:var(--text3);font-family:monospace"></span>
+      <button onclick="escanearLiga()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:9px;padding:3px 10px;border-radius:6px;cursor:pointer">↻ Escanear</button>
+    </div>
+  </div>
+  <div id="scan-cards">
+    <div style="text-align:center;padding:50px 20px;color:var(--text3)">
+      <div style="font-size:36px;margin-bottom:10px">⚡</div>
+      <p style="font-size:13px;line-height:1.6">Elige una liga para escanear<br>partidos de las próximas 48h</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: MANUAL -->
+<div id="page-manual" class="page active">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;margin-bottom:14px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:4px">Análisis de partido</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5">
+      Escribe cualquier partido — Champions, Libertadores, BetPlay, amistosos — y obtén picks con cuota y valor esperado calculados con Poisson.
+    </div>
+    <div style="margin-bottom:13px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px">🏆 Competición</label>
+      <select id="m-comp" style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:11px 12px;border-radius:9px;cursor:pointer">
+        <option value="Eurocopa">🇪🇺 Eurocopa</option>
+        <option value="Copa América">🌎 Copa América</option>
+        <option value="Eliminatorias CONMEBOL">🌎 Eliminatorias CONMEBOL</option>
+        <option value="Champions League">⭐ Champions League</option>
+        <option value="Europa League">🔶 Europa League</option>
+        <option value="Conference League">🔵 Conference League</option>
+        <option value="Premier League">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+        <option value="La Liga">🇪🇸 La Liga</option>
+        <option value="Serie A">🇮🇹 Serie A</option>
+        <option value="Bundesliga">🇩🇪 Bundesliga</option>
+        <option value="Ligue 1">🇫🇷 Ligue 1</option>
+        <option value="Liga BetPlay">🇨🇴 Liga BetPlay</option>
+        <option value="Copa Libertadores">🏆 Copa Libertadores</option>
+        <option value="Copa Sudamericana">🏅 Copa Sudamericana</option>
+        <option value="MLS">🇺🇸 MLS</option>
+        <option value="Amistoso Internacional" selected>🤝 Amistoso Internacional</option>
+      </select>
+    </div>
+    <div style="margin-bottom:13px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px">🏠 Equipo Local</label>
+      <input id="m-home" type="text" placeholder="Ej: Brasil, Real Madrid..." autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"
+        style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:600;padding:11px 12px;border-radius:9px"/>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px">✈️ Equipo Visitante</label>
+      <input id="m-away" type="text" placeholder="Ej: Argentina, Barcelona..." autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"
+        style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:600;padding:11px 12px;border-radius:9px"/>
+    </div>
+    <button onclick="calcManual()" style="width:100%;padding:15px 0;border:none;border-radius:10px;cursor:pointer;
+      background:linear-gradient(135deg,#6366f1,#00e87a);color:#fff;
+      font-family:'Syne',sans-serif;font-weight:900;font-size:16px;letter-spacing:.04em">
+      ⚡ CALCULAR PICKS
+    </button>
+  </div>
+  <div id="manual-result"></div>
+
+  <!-- TABLA DE REFERENCIA OFICIAL -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="width:34px;height:34px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📊</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800">Tabla de referencia oficial</div>
+        <div style="font-size:10px;color:var(--text3)">Porcentaje → Cuota mínima recomendada</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:7px 8px;text-align:left;color:var(--text3);font-weight:600;letter-spacing:.06em;font-size:9px;text-transform:uppercase">% Prob.</th>
+            <th style="padding:7px 8px;text-align:center;color:var(--text3);font-weight:600;letter-spacing:.06em;font-size:9px;text-transform:uppercase">Cuota mín.</th>
+            <th style="padding:7px 8px;text-align:left;color:var(--text3);font-weight:600;letter-spacing:.06em;font-size:9px;text-transform:uppercase">¿Cómo jugarla?</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-ref-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:10px;color:var(--text3);line-height:1.6">
+      ⚠️ <b style="color:#fbbf24">Importante:</b> Si la casa de apuestas te ofrece una cuota <b>menor</b> a la mínima de la tabla para ese porcentaje, el pick <b>no tiene valor matemático</b> — la casa ya ganó ese margen. Solo apuesta cuando la cuota ofrecida sea <b>igual o mayor</b> a la mínima recomendada.
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: ESCALERA -->
+<div id="page-escalera" class="page">
+  <div style="background:linear-gradient(135deg,#0d0d24,#07071a);border:1px solid var(--border);border-radius:14px;padding:18px 16px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🪜</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:900">Escalera de Bancas</div>
+        <div style="font-size:11px;color:var(--text3)">$50.000 → $500.000 COP en 5 días</div>
+      </div>
+    </div>
+    <!-- Config inicial -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Capital inicial (COP)</label>
+        <input id="esc-capital" type="number" value="50000" min="10000" step="10000"
+          style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:10px 12px;border-radius:8px"/>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Meta (COP)</label>
+        <input id="esc-meta" type="number" value="500000" min="100000" step="50000"
+          style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:10px 12px;border-radius:8px"/>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Cuota mínima por apuesta (recomendado 1.70-1.90)</label>
+      <input id="esc-cuota" type="number" value="1.80" min="1.30" max="3.00" step="0.05"
+        style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:10px 12px;border-radius:8px"/>
+    </div>
+    <button onclick="calcEscalera()" style="width:100%;padding:13px;border:none;border-radius:10px;cursor:pointer;
+      background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#04040f;
+      font-family:'Syne',sans-serif;font-weight:900;font-size:15px">
+      🪜 CALCULAR ESCALERA
+    </button>
+  </div>
+  <div id="esc-result"></div>
+</div>
+
+<!-- PAGE: COMBINADA -->
+<div id="page-combo" class="page">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:38px;height:38px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🎯</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:900">Combinada Recomendada</div>
+        <div style="font-size:11px;color:var(--text3)">Solo picks &gt;75% — máximo 3 selecciones</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);line-height:1.6;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:12px">
+      ⚠️ Las combinadas multiplican la cuota pero también el riesgo. Solo se arman con los picks más seguros (&gt;75%) de partidos distintos. Nunca combines más de 3 selecciones.
+    </div>
+    <button onclick="armarCombinada()" style="width:100%;padding:13px;border:none;border-radius:10px;cursor:pointer;
+      background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;
+      font-family:'Syne',sans-serif;font-weight:900;font-size:15px">
+      🎯 ARMAR COMBINADA CON PICKS ACTIVOS
+    </button>
+  </div>
+  <div id="combo-result">
+    <div style="text-align:center;padding:40px 20px;color:var(--text3)">
+      <div style="font-size:32px;margin-bottom:10px">🎯</div>
+      <p style="font-size:13px;line-height:1.6">Primero escanea una liga o calcula<br>picks manualmente, luego arma la combinada.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: HISTORIAL -->
+<div id="page-hist" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800">Historial</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Picks guardados y resultados</div>
+    </div>
+    <button onclick="limpiarHistorial()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:5px 10px;border-radius:7px;cursor:pointer">🗑 Limpiar</button>
+  </div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- NAV -->
+<nav class="bnav">
+  <button class="bnav-btn" id="nav-scan" onclick="goPage('scan')"><span class="ic">📡</span>SCANNER</button>
+  <button class="bnav-btn active" id="nav-manual" onclick="goPage('manual')"><span class="ic">✏️</span>MANUAL</button>
+  <button class="bnav-btn" id="nav-escalera" onclick="goPage('escalera')"><span class="ic">🪜</span>ESCALERA</button>
+  <button class="bnav-btn" id="nav-combo" onclick="goPage('combo')"><span class="ic">🎯</span>COMBINADA</button>
+  <button class="bnav-btn" id="nav-hist" onclick="goPage('hist')"><span class="ic">📋</span>HISTORIAL</button>
+</nav>
+
+<!-- OVERLAY ANÁLISIS -->
+<div class="overlay" id="modal" onclick="if(event.target===this)cerrarModal()">
+  <div id="modal-body" style="max-width:660px;margin:0 auto"></div>
+</div>
+
+<!-- OVERLAY UMBRAL -->
+<div class="overlay" id="thr-modal" style="align-items:center;justify-content:center;display:none" onclick="if(event.target===this)closeThrModal()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px 20px;width:100%;max-width:400px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px">Umbral de confianza</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Solo se muestran picks que superen este %.</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--text2)">Mínimo</span>
+      <span id="thr-num" style="font-size:13px;font-weight:800;font-family:monospace;color:var(--green)">70%</span>
+    </div>
+    <input type="range" id="thr-range" min="55" max="85" value="70" oninput="setThr(this.value)"
+      style="width:100%;accent-color:var(--purple);cursor:pointer;height:4px;margin-bottom:6px"/>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:18px">
+      <span>55% — más picks</span><span>85% — solo seguros</span>
+    </div>
+    <button onclick="closeThrModal()" style="width:100%;padding:12px;background:linear-gradient(90deg,#6366f1,#8b5cf6);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Listo</button>
+  </div>
+</div>
+
+<!-- OVERLAY VALIDADOR IA -->
+<div class="overlay" id="ia-modal" style="align-items:center;justify-content:center;display:none" onclick="if(event.target===this)closeIaModal()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px 20px;width:100%;max-width:400px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px">🤖 Validador IA</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      Conecta tu propia API Key de Anthropic (Claude) para que la IA audite cada pick estadístico antes de recomendártelo como seguro. La clave se guarda solo en este dispositivo (localStorage) y se usa únicamente para llamar a la API de Anthropic directamente desde tu navegador — nunca se envía a otro servidor.
+    </div>
+    <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">API Key de Anthropic</label>
+    <input id="ia-key-input" type="password" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+      style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:13px;padding:11px 12px;border-radius:9px;margin-bottom:14px;font-family:'JetBrains Mono',monospace"/>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeIaModal()" style="flex:1;padding:11px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-weight:700;font-size:13px;cursor:pointer">Cancelar</button>
+      <button onclick="guardarIaKey()" style="flex:2;padding:11px;background:linear-gradient(90deg,#6366f1,#00e87a);border:none;border-radius:10px;color:#04040f;font-weight:800;font-size:13px;cursor:pointer">Guardar clave</button>
+    </div>
+    <button id="ia-key-clear" onclick="borrarIaKey()" style="width:100%;margin-top:8px;padding:9px;background:transparent;border:none;color:#ff4060;font-size:11px;cursor:pointer;display:none">🗑 Eliminar clave guardada</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+var API_KEY   = 'f2d96ba05cfeda248fbb6321b15c60c3';
+var THRESHOLD = 70;
+var MUY_SEGURO = 75;
+var REFRESH_H = 1;
+var currentSport = null;
+var lastScanTime = null;
+var refreshTimer = null;
+var scanStore    = {};
+var manualStore  = null;
+var modalTab     = 'picks';
+var currentResult= null;
+
+// ══════════════════════════════════════════
+// LIGAS
+// ══════════════════════════════════════════
+var LIGAS=[
+  {key:'soccer_epl',                        name:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League'},
+  {key:'soccer_spain_la_liga',              name:'🇪🇸 La Liga'},
+  {key:'soccer_uefa_champs_league',         name:'⭐ Champions League'},
+  {key:'soccer_italy_serie_a',              name:'🇮🇹 Serie A'},
+  {key:'soccer_germany_bundesliga',         name:'🇩🇪 Bundesliga'},
+  {key:'soccer_france_ligue_one',           name:'🇫🇷 Ligue 1'},
+  {key:'soccer_colombia_primera_a',         name:'🇨🇴 Liga BetPlay'},
+  {key:'soccer_conmebol_copa_libertadores', name:'🏆 Libertadores'},
+  {key:'soccer_brazil_campeonato',          name:'🇧🇷 Brasileirao'},
+  {key:'soccer_argentina_primera_division', name:'🇦🇷 Liga Argentina'},
+  {key:'soccer_mexico_ligamx',              name:'🇲🇽 Liga MX'},
+  {key:'soccer_usa_mls',                    name:'🇺🇸 MLS'},
+  {key:'soccer_uefa_europa_league',         name:'🔶 Europa League'},
+];
+
+var COMP_AVG={
+  soccer_epl:                        {g:2.82,c:10.4,t:2.8,ha:.11},
+  soccer_spain_la_liga:              {g:2.59,c:9.9, t:3.6,ha:.12},
+  soccer_uefa_champs_league:         {g:2.78,c:10.1,t:2.9,ha:.10},
+  soccer_italy_serie_a:              {g:2.55,c:9.7, t:3.8,ha:.10},
+  soccer_germany_bundesliga:         {g:3.05,c:10.6,t:2.7,ha:.11},
+  soccer_france_ligue_one:           {g:2.55,c:9.4, t:3.5,ha:.10},
+  soccer_colombia_primera_a:         {g:2.41,c:9.1, t:3.9,ha:.14},
+  soccer_conmebol_copa_libertadores: {g:2.48,c:9.3, t:3.7,ha:.15},
+  soccer_brazil_campeonato:          {g:2.48,c:9.3, t:3.6,ha:.13},
+  soccer_argentina_primera_division: {g:2.41,c:9.0, t:3.8,ha:.14},
+  soccer_mexico_ligamx:              {g:2.52,c:9.4, t:3.5,ha:.13},
+  soccer_usa_mls:                    {g:2.88,c:9.9, t:3.0,ha:.13},
+  soccer_uefa_europa_league:         {g:2.61,c:9.6, t:3.3,ha:.09},
+};
+
+var MANUAL_AVG={
+  "Eurocopa":              {g:2.47,c:9.4, t:3.0,ha:.04},
+  "Copa América":          {g:2.38,c:9.2, t:3.4,ha:.07},
+  "Eliminatorias CONMEBOL":{g:2.31,c:8.9, t:3.6,ha:.12},
+  "Champions League":      {g:2.78,c:10.1,t:2.9,ha:.10},
+  "Europa League":         {g:2.61,c:9.6, t:3.3,ha:.09},
+  "Conference League":     {g:2.55,c:9.3, t:3.2,ha:.09},
+  "Premier League":        {g:2.82,c:10.4,t:2.8,ha:.11},
+  "La Liga":               {g:2.59,c:9.9, t:3.6,ha:.12},
+  "Serie A":               {g:2.55,c:9.7, t:3.8,ha:.10},
+  "Bundesliga":            {g:3.05,c:10.6,t:2.7,ha:.11},
+  "Ligue 1":               {g:2.55,c:9.4, t:3.5,ha:.10},
+  "Liga BetPlay":          {g:2.41,c:9.1, t:3.9,ha:.14},
+  "Copa Libertadores":     {g:2.48,c:9.3, t:3.7,ha:.15},
+  "Copa Sudamericana":     {g:2.44,c:9.1, t:3.8,ha:.14},
+  "MLS":                   {g:2.88,c:9.9, t:3.0,ha:.13},
+  "Amistoso Internacional":{g:2.95,c:10.0,t:2.4,ha:.02},
+};
+
+// ══════════════════════════════════════════
+// POISSON
+// ══════════════════════════════════════════
+function poi(l,k){if(l<=0)return k===0?1:0;var f=1;for(var i=2;i<=k;i++)f*=i;return Math.exp(-l)*Math.pow(l,k)/f;}
+function cdf(l,n){var s=0;for(var k=0;k<=n;k++)s+=poi(l,k);return Math.min(s,1);}
+function pOv(l,line){return(1-cdf(l,Math.floor(line)))*100;}
+
+function getOdds(game){
+  try{
+    var bk=game.bookmakers[0];var h2h=null;
+    for(var i=0;i<bk.markets.length;i++){if(bk.markets[i].key==='h2h'){h2h=bk.markets[i];break;}}
+    if(!h2h)return null;
+    var res={home:2.0,away:2.0,draw:null};
+    h2h.outcomes.forEach(function(o){
+      if(o.name===game.home_team)res.home=o.price;
+      else if(o.name===game.away_team)res.away=o.price;
+      else res.draw=o.price;
+    });
+    return res;
+  }catch(e){return null;}
+}
+
+function calcImplied(game){
+  var o=getOdds(game);if(!o)return{home:50,away:50,draw:0};
+  var ph=1/o.home,pa=1/o.away,pd=o.draw?1/o.draw:0,t=ph+pa+pd;
+  return{home:Math.round(ph/t*100),away:Math.round(pa/t*100),draw:pd>0?Math.round(pd/t*100):0};
+}
+
+// Cuota implícita desde probabilidad — la casa aplica margen ~8%
+function probToCuota(p){
+  if(p<=0)return 99;
+  var cuotaJusta=100/p;
+  return Math.round((cuotaJusta*0.92)*100)/100;
+}
+
+// Valor esperado: EV = (prob/100 * cuota) - 1
+// EV > 0 = pick con valor real
+function calcEV(prob, cuota){
+  return Math.round(((prob/100)*cuota-1)*1000)/1000;
+}
+
+// ══════════════════════════════════════════════════════
+// TABLA DE REFERENCIA OFICIAL — Porcentaje vs Cuota mínima
+// Fuente: documento interno Dialpa Analytics
+// ══════════════════════════════════════════════════════
+var TABLA_REF=[
+  {prob:90, cuotaMin:1.11, consejo:"Ideal para meter en combinadas."},
+  {prob:85, cuotaMin:1.18, consejo:"Muy segura, busca que pague 1.25+."},
+  {prob:80, cuotaMin:1.25, consejo:'El estándar de los picks "seguros".'},
+  {prob:75, cuotaMin:1.33, consejo:"Excelente para buscar cuotas de 1.40+."},
+  {prob:70, cuotaMin:1.43, consejo:"Aquí empiezan los mejores regalos de las casas."},
+  {prob:65, cuotaMin:1.54, consejo:"Si la casa te paga 1.65+, vas ganando."},
+  {prob:60, cuotaMin:1.67, consejo:"Gran valor si la casa se estira a 1.75+."},
+  {prob:55, cuotaMin:1.82, consejo:"Moneda al aire con valor si paga más de 2.00."},
+];
+
+// Obtener cuota mínima recomendada según la probabilidad del pick
+function getCuotaMinRecomendada(prob){
+  for(var i=0;i<TABLA_REF.length;i++){
+    if(prob>=TABLA_REF[i].prob) return TABLA_REF[i];
+  }
+  return {prob:55,cuotaMin:1.82,consejo:"Moneda al aire con valor si paga más de 2.00."};
+}
+
+// Evaluar si el pick tiene VALOR REAL según la tabla
+// Un pick tiene valor si su cuota estimada >= cuota mínima recomendada para esa probabilidad
+function tieneValor(prob, cuota){
+  var ref=getCuotaMinRecomendada(prob);
+  return cuota>=ref.cuotaMin;
+}
+
+// Cuota mínima global para mostrar picks
+var CUOTA_MIN = 1.11;
+
+
+function _calcPicks(nm,an,avg,prob){
+  var favP=Math.max(prob.home,prob.away)/100;
+  var bal=1-Math.abs(prob.home-prob.away)/100;
+  var ha=avg.ha;
+
+  // xG ajustado por probabilidades implícitas reales
+  var xgT=Math.max(1.0,avg.g*(1+(favP-.50)*.45));
+  var xgH=(xgT/2)*(1+ha+(prob.home-prob.away)/200);
+  var xgA=Math.max(0.3,xgT-xgH);
+
+  // Córners
+  var cT=avg.c*(1+(favP-.50)*.30);
+  var cH=cT*(.52+ha*.4);
+  var cAw=cT*(.48-ha*.4);
+
+  // Tarjetas
+  var tL=Math.max(1.5,avg.t*(.85+bal*.35+(favP-.50)*.20));
+
+  // BTTS
+  var btts=(1-cdf(xgH,0))*(1-cdf(xgA,0))*100;
+
+  // Probabilidad ganador
+  var pHome=prob.home;
+  var pDraw=prob.draw||0;
+  var pAway=prob.away;
+
+  // DNB (Draw No Bet) — si gana o devuelven
+  var pDNB_home=pHome+pDraw*0.5;
+  var pDNB_away=pAway+pDraw*0.5;
+
+  // Resultado primera mitad — aprox 60% de xG en 1T
+  var xgH_HT=xgH*0.48;
+  var xgA_HT=xgA*0.48;
+  var pHT_home=(1-cdf(xgH_HT,0))*(cdf(xgA_HT,0))*100;
+  var pHT_draw=poi(xgH_HT,0)*poi(xgA_HT,0)*100+(1-poi(xgH_HT,0))*(1-poi(xgA_HT,0))*60;
+  var pHT_away=(cdf(xgH_HT,0))*(1-cdf(xgA_HT,0))*100;
+
+  // Construir todos los mercados con cuota estimada y EV
+  var allMarkets=[
+    // ── GOLES ──
+    {cat:"Goles",   icon:"⚽",label:"Más de 1.5 goles",           prob:pOv(xgT,1.5)},
+    {cat:"Goles",   icon:"⚽",label:"Más de 2.5 goles",           prob:pOv(xgT,2.5)},
+    {cat:"Goles",   icon:"⚽",label:"Más de 3.5 goles",           prob:pOv(xgT,3.5)},
+    {cat:"Goles",   icon:"⚽",label:"Menos de 2.5 goles",         prob:cdf(xgT,2)*100},
+    {cat:"Goles",   icon:"⚽",label:"Menos de 3.5 goles",         prob:cdf(xgT,3)*100},
+    {cat:"Goles",   icon:"⚽",label:"Ambos marcan — SÍ",          prob:btts},
+    {cat:"Goles",   icon:"⚽",label:"Ambos marcan — NO",          prob:100-btts},
+    {cat:"Goles",   icon:"⚽",label:"Goles exactos: 1",           prob:pExacto(xgT,1)},
+    {cat:"Goles",   icon:"⚽",label:"Goles exactos: 2",           prob:pExacto(xgT,2)},
+    {cat:"Goles",   icon:"⚽",label:"Goles exactos: 3",           prob:pExacto(xgT,3)},
+    // ── RESULTADO ──
+    {cat:"Resultado",icon:"🏆",label:nm+" gana",                  prob:pHome},
+    {cat:"Resultado",icon:"🤝",label:"Empate",                    prob:pDraw>0?pDraw:30},
+    {cat:"Resultado",icon:"🏆",label:an+" gana",                  prob:pAway},
+    {cat:"Resultado",icon:"🏠",label:nm+" DNB (gana o devuelve)", prob:pDNB_home},
+    {cat:"Resultado",icon:"✈️",label:an+" DNB (gana o devuelve)", prob:pDNB_away},
+    {cat:"Resultado",icon:"🏠",label:nm+" no pierde",             prob:pHome+pDraw},
+    {cat:"Resultado",icon:"✈️",label:an+" no pierde",             prob:pAway+pDraw},
+    // ── 1ER TIEMPO ──
+    {cat:"1er Tiempo",icon:"⏱",label:nm+" gana 1er tiempo",      prob:pHT_home},
+    {cat:"1er Tiempo",icon:"⏱",label:"Empate 1er tiempo",        prob:pHT_draw},
+    {cat:"1er Tiempo",icon:"⏱",label:"Over 0.5 goles 1T",        prob:pOv(xgH_HT+xgA_HT,0.5)},
+    {cat:"1er Tiempo",icon:"⏱",label:"Over 1.5 goles 1T",        prob:pOv(xgH_HT+xgA_HT,1.5)},
+    // ── CÓRNERS ──
+    {cat:"Córners",  icon:"⌀", label:"Más de 8.5 córners",       prob:pOv(cT,8.5)},
+    {cat:"Córners",  icon:"⌀", label:"Más de 9.5 córners",       prob:pOv(cT,9.5)},
+    {cat:"Córners",  icon:"⌀", label:"Más de 10.5 córners",      prob:pOv(cT,10.5)},
+    {cat:"Córners",  icon:"⌀", label:"Más de 11.5 córners",      prob:pOv(cT,11.5)},
+    {cat:"Córners",  icon:"⌀", label:"Menos de 9.5 córners",     prob:cdf(cT,9)*100},
+    {cat:"Córners",  icon:"⌀", label:"Menos de 10.5 córners",    prob:cdf(cT,10)*100},
+    {cat:"Córners",  icon:"🏠",label:nm+" +4.5 córners",         prob:pOv(cH,4.5)},
+    {cat:"Córners",  icon:"🏠",label:nm+" +5.5 córners",         prob:pOv(cH,5.5)},
+    {cat:"Córners",  icon:"✈️",label:an+" +3.5 córners",         prob:pOv(cAw,3.5)},
+    {cat:"Córners",  icon:"✈️",label:an+" +4.5 córners",         prob:pOv(cAw,4.5)},
+    // ── TARJETAS ──
+    {cat:"Tarjetas", icon:"🟨",label:"Más de 2.5 tarjetas",      prob:pOv(tL,2.5)},
+    {cat:"Tarjetas", icon:"🟨",label:"Más de 3.5 tarjetas",      prob:pOv(tL,3.5)},
+    {cat:"Tarjetas", icon:"🟨",label:"Más de 4.5 tarjetas",      prob:pOv(tL,4.5)},
+    {cat:"Tarjetas", icon:"🟨",label:"Menos de 3.5 tarjetas",    prob:cdf(tL,3)*100},
+    {cat:"Tarjetas", icon:"🟨",label:"Menos de 4.5 tarjetas",    prob:cdf(tL,4)*100},
+  ];
+
+  // Calcular cuota estimada y EV para cada mercado
+  var ms=allMarkets.map(function(m){
+    var p=Math.min(Math.max(m.prob,0),99.0);
+    var cuota=probToCuota(p);
+    var ev=calcEV(p,cuota);
+    return Object.assign({},m,{prob:p,cuota:cuota,ev:ev});
+  });
+
+  // Ordenar todo por EV desc
+  var msSorted=ms.slice().sort(function(a,b){
+    if(Math.abs(b.ev-a.ev)>0.005) return b.ev-a.ev;
+    return b.cuota-a.cuota;
+  });
+
+  // Picks principales: prob >= THRESHOLD Y cuota >= cuota mínima de la tabla
+  var picks=msSorted.filter(function(m){
+    var ref=getCuotaMinRecomendada(m.prob);
+    return m.prob>=THRESHOLD && m.cuota>=ref.cuotaMin;
+  });
+
+  // Si no hay suficientes picks, mostrar los mejores disponibles como referencia
+  if(picks.length<3){
+    var usados=picks.map(function(p){return p.label;});
+    var extras=msSorted.filter(function(m){
+      return m.cuota>=1.11 && usados.indexOf(m.label)===-1;
+    }).slice(0,6-picks.length);
+    extras=extras.map(function(m){return Object.assign({},m,{esReferencia:true});});
+    picks=picks.concat(extras);
+  }
+
+  // Tops: picks muy seguros (>=75% de probabilidad) y con valor real vs. la tabla
+  var tops=msSorted.filter(function(m){
+    var ref=getCuotaMinRecomendada(m.prob);
+    return m.prob>=MUY_SEGURO && m.cuota>=ref.cuotaMin;
+  }).slice(0,5);
+
+  var conf=picks.slice(0,3).reduce(function(s,m){return s+m.prob;},0)/Math.max(picks.slice(0,3).length,1);
+
+  return{xgH:xgH,xgA:xgA,xgT:xgT,cT:cT,tL:tL,btts:btts,
+    impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw,
+    markets:ms,picks:picks,tops:tops,conf:conf};
+}
+
+// Probabilidad exacta de k goles
+function pExacto(lambda,k){
+  return poi(lambda,k)*100;
+}
+
+function calcPicksFromOdds(game,sport){
+  var avg=COMP_AVG[sport]||{g:2.60,c:9.6,t:3.2,ha:.10};
+  return _calcPicks(game.home_team,game.away_team,avg,calcImplied(game));
+}
+function calcPicksManual(home,away,comp){
+  var avg=MANUAL_AVG[comp]||{g:2.60,c:9.6,t:3.2,ha:.10};
+  return _calcPicks(home,away,avg,{home:52,away:48,draw:0});
+}
+
+// ══════════════════════════════════════════
+// API
+// ══════════════════════════════════════════
+function fetchLiga(sport){
+  var url='https://api.the-odds-api.com/v4/sports/'+sport+'/odds/?apiKey='+API_KEY
+    +'&regions=eu,uk&markets=h2h&oddsFormat=decimal&dateFormat=iso';
+  return fetch(url).then(function(r){
+    if(r.status===401)throw{code:401,msg:'API Key inválida.'};
+    if(r.status===422)throw{code:422,msg:'Liga sin partidos activos.'};
+    if(r.status===429)throw{code:429,msg:'Límite de requests alcanzado. Intenta en 1 hora.'};
+    if(!r.ok)throw{code:r.status,msg:'Error HTTP '+r.status};
+    return r.json();
+  });
+}
+
+function dentro48h(game){
+  var t=new Date(game.commence_time),now=new Date(),diff=t-now;
+  return diff>=-3600000&&diff<=172800000;
+}
+
+function timeLabel(game){
+  if(!game.commence_time)return '';
+  var d=new Date(game.commence_time),now=new Date(),diff=d-now;
+  if(diff<-60000)return '🔴 EN VIVO';
+  if(diff<0)return '🔴 Iniciando';
+  if(diff<3600000)return '⏱ '+Math.round(diff/60000)+' min';
+  if(diff<86400000)return '🕐 Hoy '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  return '📅 '+d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'})+' '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ══════════════════════════════════════════
+// ESCANEAR
+// ══════════════════════════════════════════
+function escanearLiga(){
+  if(!currentSport){document.getElementById('scan-status').textContent='Selecciona una liga primero';return;}
+  clearTimeout(refreshTimer);clearInterval(window._cdInterval);
+  document.getElementById('scan-cards').innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--text3)"><span class="spin" style="font-size:32px;display:block;margin-bottom:12px">⟳</span><p style="font-size:12px">Buscando partidos próximos 48h...</p></div>';
+  document.getElementById('scan-status').textContent='Escaneando...';
+  document.getElementById('next-refresh').textContent='';
+  fetchLiga(currentSport).then(function(data){
+    var games=(data||[]).filter(dentro48h);
+    renderScanCards(games,currentSport);
+    lastScanTime=new Date();
+    iniciarCountdown();
+    refreshTimer=setTimeout(function(){escanearLiga();},REFRESH_H*3600000);
+  }).catch(function(e){
+    document.getElementById('scan-cards').innerHTML='<div style="background:#ff406010;border:1px solid #ff406040;border-radius:14px;padding:20px;text-align:center">'
+      +'<p style="font-size:13px;color:#ff4060;line-height:1.6">'+(e.msg||'Error al conectar.')+'</p>'
+      +'<button onclick="escanearLiga()" style="margin-top:12px;background:#6366f122;border:1px solid #6366f144;color:#818cf8;font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer">Reintentar</button></div>';
+    document.getElementById('scan-status').textContent='Error al cargar';
+  });
+}
+
+function iniciarCountdown(){
+  clearInterval(window._cdInterval);
+  window._cdInterval=setInterval(function(){
+    if(!lastScanTime)return;
+    var rem=REFRESH_H*3600-Math.floor((new Date()-lastScanTime)/1000);
+    if(rem<=0){clearInterval(window._cdInterval);return;}
+    var m=Math.floor(rem/60),s=rem%60;
+    document.getElementById('next-refresh').textContent='Próximo: '+(m>0?m+'m ':'')+s+'s';
+  },1000);
+}
+
+// ══════════════════════════════════════════
+// HELPERS UI
+// ══════════════════════════════════════════
+function ccol(p){return p>=80?'#00e87a':p>=70?'#6366f1':p>=60?'#fbbf24':'#444488';}
+function clbl(p){return p>=80?'MUY SEGURO':p>=75?'SEGURO':p>=70?'VÁLIDO':'BAJO';}
+function catcol(c){return c==='Goles'?'#38bdf8':c==='Córners'?'#818cf8':c==='Tarjetas'?'#fbbf24':c==='Resultado'?'#00e87a':c==='1er Tiempo'?'#a78bfa':'#6366f1';}
+function fmtCOP(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);}
+
+function Tag(t,col){
+  return '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;font-weight:700;'
+    +'letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;'
+    +'background:'+col+'1A;color:'+col+';border:1px solid '+col+'33;white-space:nowrap">'+t+'</span>';
+}
+function Bar(p){
+  var c=ccol(p);
+  return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'
+    +'<div style="flex:1;height:5px;background:#1a1a42;border-radius:99px;overflow:hidden">'
+    +'<div style="width:'+p.toFixed(1)+'%;height:100%;border-radius:99px;background:linear-gradient(90deg,'+c+'66,'+c+')"></div></div>'
+    +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:'+c+';min-width:48px;text-align:right">'+p.toFixed(1)+'%</span></div>';
+}
+function PickRow(m,i){
+  var c=ccol(m.prob);
+  var cuota=m.cuota||probToCuota(m.prob);
+  var ev=m.ev!==undefined?m.ev:calcEV(m.prob,cuota);
+  var evCol=ev>=0.05?'#00e87a':ev>=0?'#fbbf24':'#ff4060';
+  var evTxt=ev>=0?'+'+ev.toFixed(3):ev.toFixed(3);
+  var esRef=m.esReferencia;
+  var ref=getCuotaMinRecomendada(m.prob);
+  var conValor=tieneValor(m.prob,cuota);
+  var borderCol=conValor&&!esRef?c+'55':'#1a1a42';
+
+  return '<div class="fade-up" style="animation-delay:'+i*.05+'s;padding:12px 13px;'
+    +'background:'+(esRef?'#08081500':'var(--bg2)')+';border-radius:10px;'
+    +'border:1px solid '+borderCol+';margin-bottom:8px;'
+    +(esRef?'opacity:.7':'')+'">'
+    // Etiqueta referencia
+    +(esRef?'<div style="font-size:9px;color:#444488;font-family:\'JetBrains Mono\',monospace;letter-spacing:.08em;margin-bottom:5px">📊 REFERENCIA — bajo umbral principal</div>':'')
+    // Pick principal
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+    +'<span style="font-size:15px">'+m.icon+'</span>'
+    +'<span style="font-size:13px;font-weight:600;color:'+(esRef?'var(--text3)':'var(--text)')+';flex:1;line-height:1.4">'+m.label+'</span>'
+    +Tag(m.cat,catcol(m.cat))
+    +(conValor&&!esRef?'<span style="font-size:9px;font-weight:700;font-family:\'JetBrains Mono\',monospace;padding:2px 7px;border-radius:4px;background:#00e87a18;color:#00e87a;border:1px solid #00e87a33">✓ CON VALOR</span>':'')
+    +'</div>'
+    // Cuota + EV + Cuota mínima recomendada
+    +'<div style="display:flex;align-items:stretch;gap:6px;margin-bottom:6px">'
+    // Cuota estimada
+    +'<div style="background:#fbbf2418;border:1px solid #fbbf2444;border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
+    +'<div style="font-size:8px;color:#fbbf24;letter-spacing:.08em;text-transform:uppercase">CUOTA EST.</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:#fbbf24">'+cuota.toFixed(2)+'</div>'
+    +'</div>'
+    // Cuota mínima recomendada según tabla
+    +'<div style="background:'+(conValor?'#00e87a18':'#ff406018')+';border:1px solid '+(conValor?'#00e87a44':'#ff406044')+';border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
+    +'<div style="font-size:8px;color:'+(conValor?'#00e87a':'#ff4060')+';letter-spacing:.06em;text-transform:uppercase">MÍN. TABLA</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:'+(conValor?'#00e87a':'#ff4060')+'">'+ref.cuotaMin.toFixed(2)+'</div>'
+    +'</div>'
+    // EV
+    +'<div style="background:'+evCol+'18;border:1px solid '+evCol+'44;border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
+    +'<div style="font-size:8px;color:'+evCol+';letter-spacing:.08em;text-transform:uppercase">EV</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:'+evCol+'">'+evTxt+'</div>'
+    +'</div>'
+    +'</div>'
+    // Consejo de la tabla
+    +'<div style="font-size:10px;color:'+(conValor?'#6B8CAE':'#444488')+';padding:5px 8px;background:'+(conValor?'#22D3EE0A':'transparent')+';border-radius:6px;margin-bottom:4px">'
+    +'💡 '+ref.consejo
+    +'</div>'
+    // Barra probabilidad
+    +Bar(m.prob)
+    +'</div>';
+}
+
+// ══════════════════════════════════════════
+// RENDER SCANNER CARDS
+// ══════════════════════════════════════════
+function renderScanCards(games,sport){
+  scanStore={};
+  var ligaInfo=LIGAS.find(function(l){return l.key===sport;})||{name:sport};
+  var container=document.getElementById('scan-cards');
+  if(!games.length){
+    container.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">'
+      +'<div style="font-size:32px;margin-bottom:10px">📭</div>'
+      +'<p style="font-size:13px;color:var(--text3);line-height:1.6">Sin partidos en las próximas 48h para '+ligaInfo.name+'</p></div>';
+    document.getElementById('scan-status').textContent='Sin partidos próximos · '+ligaInfo.name;
+    return;
+  }
+  var entries=games.map(function(game){
+    var r=calcPicksFromOdds(game,sport);
+    scanStore[game.id]={game:game,sport:sport,liga:ligaInfo.name,r:r};
+    return{game:game,r:r};
+  }).sort(function(a,b){
+    var ap=a.r.picks.length?a.r.picks[0].prob:0,bp=b.r.picks.length?b.r.picks[0].prob:0;
+    return bp-ap;
+  });
+
+  var alertCount=entries.filter(function(e){return e.r.tops.length>0;}).length;
+  document.getElementById('scan-status').textContent=games.length+' partidos · '+alertCount+' con picks ≥75% · '+ligaInfo.name;
+
+  var html='';
+  entries.forEach(function(entry,idx){
+    var game=entry.game,r=entry.r,odds=getOdds(game);
+    var prob={home:r.impliedHome,away:r.impliedAway,draw:r.impliedDraw};
+    var isHot=r.tops.length>0,maxP=r.picks.length?r.picks[0].prob:0;
+    var totalW=prob.home+(prob.draw||0)+prob.away;
+    var bH=Math.round(prob.home/totalW*100),bD=prob.draw?Math.round(prob.draw/totalW*100):0,bA=100-bH-bD;
+
+    html+='<div class="card'+(isHot?' hot':'')+' fade-up" style="animation-delay:'+idx*.06+'s">'
+      +'<div style="height:3px;background:linear-gradient(90deg,#6366f1,#00e87a)"></div>'
+      +'<div style="padding:8px 13px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px">'
+      +'<span style="font-size:10px;color:#818cf8;font-weight:700;letter-spacing:.5px;text-transform:uppercase">'+ligaInfo.name+'</span>'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +(isHot?'<span style="font-size:9px;color:#00e87a;border:1px solid #00e87a44;background:#00e87a0e;padding:2px 8px;border-radius:99px;font-weight:800;animation:flash 2s infinite">🎯 '+maxP.toFixed(0)+'%</span>':'')
+      +'<span style="font-size:10px;color:var(--text3);font-family:monospace">'+timeLabel(game)+'</span>'
+      +'</div></div>'
+      +'<div style="padding:6px 13px 0;display:flex;align-items:center;gap:4px">'
+      +'<div style="flex:'+bH+';height:4px;border-radius:4px 0 0 4px;background:#6366f1"></div>'
+      +(bD>0?'<div style="flex:'+bD+';height:4px;background:#444480"></div>':'')
+      +'<div style="flex:'+bA+';height:4px;border-radius:0 4px 4px 0;background:#a78bfa"></div>'
+      +'<span style="font-size:9px;color:var(--text2);white-space:nowrap;font-family:monospace;margin-left:5px">'+prob.home+'%'+(prob.draw?' / '+prob.draw+'%':'')+' / '+prob.away+'%</span>'
+      +'</div>'
+      +'<div style="padding:9px 13px 0;display:flex;align-items:center;gap:8px">'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:800;color:var(--text);font-family:\'Syne\',sans-serif;line-height:1.2">'+game.home_team+'</div>'
+      +(odds?'<div style="font-size:12px;color:#fbbf24;font-family:monospace;margin-top:3px">'+odds.home.toFixed(2)+'</div>':'')+'</div>'
+      +'<div style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:10px;color:#444488;font-weight:800;font-family:\'Syne\',sans-serif;letter-spacing:1px;flex-shrink:0">VS</div>'
+      +'<div style="flex:1;text-align:right"><div style="font-size:15px;font-weight:800;color:var(--text);font-family:\'Syne\',sans-serif;line-height:1.2">'+game.away_team+'</div>'
+      +(odds?'<div style="font-size:12px;color:#fbbf24;font-family:monospace;margin-top:3px">'+odds.away.toFixed(2)+'</div>':'')+'</div></div>'
+      +'<div style="padding:8px 13px 0;display:flex;gap:5px">'
+      +[['xG L',r.xgH.toFixed(2),'#38bdf8'],['xG V',r.xgA.toFixed(2),'#f59e0b'],['λ Cór',r.cT.toFixed(1),'#818cf8'],['λ Tarj',r.tL.toFixed(1),'#fbbf24']]
+       .map(function(x){return '<div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 4px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">'+x[0]+'</div></div>';}).join('')
+      +'</div>'
+      +(isHot?'<div style="padding:8px 13px 0"><div style="font-size:9px;color:#00e87a;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:2px solid #00e87a;padding-left:6px;margin-bottom:6px">🏆 PICKS CON VALOR</div>'
+        +r.tops.slice(0,3).map(function(m){
+          var cuota=m.cuota||probToCuota(m.prob);
+          return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;padding:5px 8px;background:var(--bg);border-radius:7px">'
+            +'<span style="font-size:12px;color:var(--text)">'+m.icon+' '+m.label+'</span>'
+            +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+            +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:800;color:#fbbf24">'+cuota.toFixed(2)+'</span>'
+            +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+ccol(m.prob)+'">'+m.prob.toFixed(0)+'%</span>'
+            +'</div></div>';
+        }).join('')
+        +'</div>':'')
+      +'<div style="padding:10px 13px 14px">'
+      +'<button onclick="abrirModal(\''+game.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.5px">⚡ Ver análisis completo</button>'
+      +'</div></div>';
+  });
+  container.innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// MODAL ANÁLISIS
+// ══════════════════════════════════════════
+function abrirModal(gameId){
+  var entry=scanStore[gameId]||(manualStore&&manualStore.game&&manualStore.game.id===gameId?manualStore:null);
+  if(!entry)return;
+  currentResult=entry.r;
+  modalTab='picks';
+  renderModalContent(entry);
+  document.getElementById('modal').style.display='block';
+  window.scrollTo({top:0});
+}
+function cerrarModal(){document.getElementById('modal').style.display='none';}
+
+function setModalTab(t){
+  modalTab=t;
+  document.querySelectorAll('.mtab').forEach(function(b){
+    var a=b.dataset.tab===t;
+    b.style.color=a?'#6366f1':'#6666aa';
+    b.style.borderBottom='2px solid '+(a?'#6366f1':'transparent');
+  });
+  document.getElementById('modal-tab-content').innerHTML=renderTabList(currentResult);
+}
+
+function renderTabList(r){
+  var list;
+  if(modalTab==='picks'){
+    list=r.picks;
+  } else {
+    list=r.markets.filter(function(m){return m.cat===modalTab;})
+      .sort(function(a,b){return b.ev-a.ev;});
+  }
+  if(!list.length)return '<div style="padding:24px 0;text-align:center;color:var(--text3);font-size:13px">Ningún pick con valor en esta categoría.</div>';
+  return list.map(function(m,i){return PickRow(m,i);}).join('');
+}
+
+function renderModalContent(entry){
+  var r=entry.r,game=entry.game,odds=getOdds(game);
+  var prob={home:r.impliedHome,away:r.impliedAway,draw:r.impliedDraw};
+  var ligaName=entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:'');
+
+  var html='<div class="fade-up">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+    +'<div><div style="font-size:10px;color:#818cf8;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase">'+ligaName+'</div>'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:17px;font-weight:900;color:#fff;line-height:1.2;margin-top:3px">'+game.home_team+' vs '+game.away_team+'</div>'
+    +(game.commence_time&&game.commence_time!==new Date().toISOString()?'<div style="font-size:11px;color:var(--text3);margin-top:4px">'+timeLabel(game)+'</div>':'')
+    +'</div>'
+    +'<button onclick="cerrarModal()" style="background:#1a1a42;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:34px;height:34px;border-radius:8px;flex-shrink:0">✕</button>'
+    +'</div>'
+    +(odds?'<div style="display:grid;grid-template-columns:1fr'+(odds.draw?' 1fr':'')+' 1fr;gap:8px;margin-bottom:12px">'
+      +[['🏠 Local',odds.home.toFixed(2),game.home_team,prob.home],
+        ...(odds.draw?[['🤝 Empate',odds.draw.toFixed(2),'X',prob.draw]]:[]),
+        ['✈️ Visita',odds.away.toFixed(2),game.away_team,prob.away]
+       ].map(function(x){return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">'+x[0]+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:#fbbf24">'+x[1]+'</div><div style="font-size:10px;color:#818cf8;font-weight:600;margin-top:3px">'+x[3]+'% impl.</div></div>';}).join('')
+      +'</div>':'')
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px">'
+    +[['xG Local',r.xgH.toFixed(2),'#38bdf8'],['xG Visita',r.xgA.toFixed(2),'#f59e0b'],['λ Córners',r.cT.toFixed(1),'#818cf8'],['λ Tarjetas',r.tL.toFixed(1),'#fbbf24']]
+     .map(function(x){return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 5px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">'+x[0]+'</div></div>';}).join('')
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:'+ccol(r.conf)+'0F;border:1px solid '+ccol(r.conf)+'44;border-radius:11px;margin-bottom:12px">'
+    +'<div><div style="font-size:10px;color:var(--text3);font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em">CONFIANZA GLOBAL</div>'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:28px;font-weight:900;color:'+ccol(r.conf)+'">'+r.conf.toFixed(1)+'%</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">'+Tag(clbl(r.conf),ccol(r.conf))
+    +'<div style="font-size:11px;color:var(--text3)">'+r.picks.length+' pick'+(r.picks.length!==1?'s':'')+' &gt;'+THRESHOLD+'%</div>'
+    +Tag(odds?'Cuotas reales + Poisson':'Poisson histórico','#00e87a')
+    +'</div></div>'
+    +(r.tops.length?'<div style="background:linear-gradient(135deg,#00e87a0F,#6366f108);border:1px solid #00e87a44;border-radius:13px;padding:14px;margin-bottom:12px">'
+      +'<div style="font-size:10px;color:#00e87a;font-family:\'JetBrains Mono\',monospace;letter-spacing:.12em;text-transform:uppercase;border-left:3px solid #00e87a;padding-left:8px;margin-bottom:12px">🏆 Picks más seguros &gt;75%</div>'
+      +r.tops.map(function(m,i){return PickRow(m,i);}).join('')
+      +'</div>':'')
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px">'
+    +'<div style="display:flex;background:var(--bg);border-bottom:1px solid var(--border)">'
+    +['picks','Goles','Resultado','1er Tiempo','Córners','Tarjetas'].map(function(t){
+       return '<button class="mtab" data-tab="'+t+'" onclick="setModalTab(\''+t+'\')" style="flex:1;padding:10px 2px;border:none;background:transparent;cursor:pointer;font-size:9px;font-weight:600;color:'+(modalTab===t?'#6366f1':'#6666aa')+';border-bottom:2px solid '+(modalTab===t?'#6366f1':'transparent')+';transition:color .15s;white-space:nowrap">'+(t==='picks'?'✅ PICKS':t==='Goles'?'⚽ GOLES':t==='Resultado'?'🏆 RESULT.':t==='1er Tiempo'?'⏱ 1T':t==='Córners'?'⌀ CÓRN.':'🟨 TARJ.')+'</button>';
+     }).join('')
+    +'</div><div id="modal-tab-content" style="padding:13px 14px">'+renderTabList(r)+'</div></div>'
+    +'<div style="background:linear-gradient(135deg,#6366f10F,#00e87a08);border:1px solid #6366f144;border-radius:13px;padding:14px;margin-bottom:12px">'
+    +'<div style="font-size:10px;color:#818cf8;font-family:\'JetBrains Mono\',monospace;letter-spacing:.12em;text-transform:uppercase;border-left:3px solid #818cf8;padding-left:8px;margin-bottom:10px">🤖 Validación con Inteligencia Artificial</div>'
+    +'<div id="ia-result">'+iaPanelHtml(entry)+'</div>'
+    +'</div>'
+    +'<button onclick="guardarHistorial(\''+game.id+'\')" style="width:100%;padding:11px;background:#00e87a18;border:1px solid #00e87a44;border-radius:10px;color:#00e87a;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 Guardar en historial</button>'
+    +'<button onclick="cerrarModal()" style="width:100%;padding:11px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--text3);font-size:13px">← Cerrar</button>'
+    +'</div>';
+
+  document.getElementById('modal-body').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// MANUAL
+// ══════════════════════════════════════════
+function calcManual(){
+  var home=document.getElementById('m-home').value.trim();
+  var away=document.getElementById('m-away').value.trim();
+  var comp=document.getElementById('m-comp').value;
+  if(home.length<2){document.getElementById('m-home').style.borderColor='#ff4060';return;}
+  if(away.length<2){document.getElementById('m-away').style.borderColor='#ff4060';return;}
+  document.getElementById('m-home').style.borderColor='';
+  document.getElementById('m-away').style.borderColor='';
+  var r=calcPicksManual(home,away,comp);
+  var fakeGame={id:'manual-'+Date.now(),home_team:home,away_team:away,commence_time:null,bookmakers:[]};
+  manualStore={game:fakeGame,sport:null,liga:comp,r:r};
+  scanStore[fakeGame.id]=manualStore;
+  var html='<div class="card'+(r.tops.length?' hot':'')+' fade-up">'
+    +'<div style="height:3px;background:linear-gradient(90deg,#6366f1,#00e87a)"></div>'
+    +'<div style="padding:10px 13px 0">'
+    +'<div style="font-size:10px;color:#818cf8;font-weight:700;letter-spacing:.5px;text-transform:uppercase">'+comp+'</div>'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:16px;font-weight:900;margin-top:4px">'+home+' <span style="color:var(--text3);font-weight:400;font-size:13px">vs</span> '+away+'</div></div>'
+    // Métricas
+    +'<div style="padding:8px 13px 0;display:flex;gap:5px">'
+    +[['xG L',r.xgH.toFixed(2),'#38bdf8'],['xG V',r.xgA.toFixed(2),'#f59e0b'],['λ Cór',r.cT.toFixed(1),'#818cf8'],['λ Tarj',r.tL.toFixed(1),'#fbbf24']]
+     .map(function(x){return '<div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 4px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">'+x[0]+'</div></div>';}).join('')
+    +'</div>'
+    // Picks con cuota
+    +(r.tops.length?
+      '<div style="padding:8px 13px 0">'
+      +'<div style="font-size:9px;color:#00e87a;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:2px solid #00e87a;padding-left:6px;margin-bottom:7px">🏆 PICKS CON VALOR</div>'
+      +r.tops.slice(0,4).map(function(m){
+        var cuota=m.cuota||probToCuota(m.prob);
+        var ev=m.ev!==undefined?m.ev:calcEV(m.prob,cuota);
+        var evCol=ev>=0.05?'#00e87a':ev>=0?'#fbbf24':'#ff4060';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:6px 9px;background:var(--bg);border-radius:8px">'
+          +'<span style="font-size:12px;color:var(--text);flex:1">'+m.icon+' '+m.label+'</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:800;color:#fbbf24">'+cuota.toFixed(2)+'</span>'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;color:'+evCol+'">EV '+(ev>=0?'+':'')+ev.toFixed(2)+'</span>'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+ccol(m.prob)+'">'+m.prob.toFixed(0)+'%</span>'
+          +'</div></div>';
+      }).join('')
+      +'</div>'
+    :'<div style="padding:8px 13px 0 13px;font-size:12px;color:#fbbf24">⚠️ Ningún pick supera el umbral con cuota ≥1.50. Ajusta el umbral desde el header.</div>')
+    +'<div style="padding:10px 13px 14px">'
+    +'<button onclick="abrirModal(\''+fakeGame.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.5px">⚡ Ver análisis completo + guardar</button>'
+    +'</div></div>';
+  document.getElementById('manual-result').innerHTML=html;
+  window.scrollTo({top:200,behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+// ESCALERA 50K → 500K
+// ══════════════════════════════════════════
+function calcEscalera(){
+  var capital=parseFloat(document.getElementById('esc-capital').value)||50000;
+  var meta=parseFloat(document.getElementById('esc-meta').value)||500000;
+  var cuota=parseFloat(document.getElementById('esc-cuota').value)||1.80;
+
+  // Estrategia: 3 apuestas por ronda
+  // Apuesta 1: 30% del capital → si gana → saca ganancia, continúa con lo ganado
+  // Apuesta 2: 30% del restante
+  // Apuesta 3: 30% del restante
+  // Al final de cada ronda guarda todo y reinicia con capital original
+
+  var rounds=[];
+  var banca=capital;
+  var totalGuardado=0;
+  var diaActual=1;
+  var rondaDia=0;
+  var MAX_ROUNDS=20;
+  var roundNum=0;
+
+  while(banca<meta&&roundNum<MAX_ROUNDS){
+    roundNum++;
+    rondaDia++;
+    if(rondaDia>3){diaActual++;rondaDia=1;}
+    if(diaActual>5)break;
+
+    var bancaInicio=banca;
+    var apuestas=[];
+    var bancaTemp=banca;
+
+    for(var i=0;i<3;i++){
+      var stake=Math.round(bancaTemp*0.30/1000)*1000||Math.round(bancaTemp*0.30);
+      if(stake<1000)stake=1000;
+      var ganancia=Math.round(stake*(cuota-1));
+      var retorno=stake+ganancia;
+      apuestas.push({num:i+1,stake:stake,cuota:cuota,ganancia:ganancia,retorno:retorno});
+      bancaTemp=bancaTemp-stake+retorno; // si acierta, continúa con lo ganado
+    }
+
+    var bancaFinal=bancaTemp;
+    var guardado=bancaFinal-capital; // ganancia neta de la ronda
+    if(guardado>0)totalGuardado+=guardado;
+    banca=capital; // reinicia con capital original
+
+    rounds.push({
+      round:roundNum,dia:diaActual,rondaDia:rondaDia,
+      bancaInicio:bancaInicio,bancaFinal:bancaFinal,
+      apuestas:apuestas,guardado:guardado>0?guardado:0,
+      totalAcumulado:totalGuardado+capital
+    });
+  }
+
+  renderEscalera(rounds,capital,meta,cuota,totalGuardado);
+}
+
+function renderEscalera(rounds,capital,meta,cuota,totalGuardado){
+  var totalAcum=capital+totalGuardado;
+  var pct=Math.min(100,Math.round(totalAcum/meta*100));
+  var col=pct>=100?'#00e87a':pct>=60?'#6366f1':'#fbbf24';
+
+  var html='<div class="fade-up">'
+    // Resumen
+    +'<div style="background:linear-gradient(135deg,#0d0d24,#07071a);border:1px solid '+col+'44;border-radius:14px;padding:16px;margin-bottom:12px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px">'
+    +'<div><div style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase">Capital acumulado proyectado</div>'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:26px;font-weight:900;color:'+col+'">'+fmtCOP(totalAcum)+'</div></div>'
+    +'<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Meta</div>'
+    +'<div style="font-size:14px;font-weight:700;color:#fbbf24">'+fmtCOP(meta)+'</div></div></div>'
+    // Barra progreso
+    +'<div style="height:8px;background:#1a1a42;border-radius:99px;overflow:hidden;margin-bottom:6px">'
+    +'<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,'+col+'66,'+col+');border-radius:99px;transition:width .8s ease"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3)">'
+    +'<span>'+fmtCOP(capital)+' inicial</span><span>'+pct+'% completado</span><span>'+fmtCOP(meta)+' meta</span></div></div>'
+
+    // Estrategia explicada
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">'
+    +'<div style="font-size:10px;color:#818cf8;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:3px solid #818cf8;padding-left:8px;margin-bottom:10px">📋 Estrategia de la escalera</div>'
+    +'<div style="font-size:12px;color:var(--text2);line-height:1.7">'
+    +'• Capital base: <b style="color:var(--yellow)">'+fmtCOP(capital)+'</b> por ronda<br>'
+    +'• 3 apuestas por ronda · cuota objetivo: <b style="color:var(--yellow)">'+cuota.toFixed(2)+'</b><br>'
+    +'• Apuesta 1: 30% del capital → si gana, reinvierte lo ganado<br>'
+    +'• Apuesta 2: 30% del nuevo total → igual<br>'
+    +'• Apuesta 3: 30% del nuevo total → guarda toda la ganancia<br>'
+    +'• Después de 3 rondas por día, reinicia con los <b style="color:var(--yellow)">'+fmtCOP(capital)+'</b> originales<br>'
+    +'• La ganancia va a tu banca guardada</div></div>'
+
+    // Rondas por día
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.08em;text-transform:uppercase">Simulación día a día</div>';
+
+  var diaActual=0;
+  rounds.forEach(function(round){
+    if(round.dia!==diaActual){
+      diaActual=round.dia;
+      html+='<div style="font-size:11px;font-weight:800;color:#818cf8;font-family:\'Syne\',sans-serif;letter-spacing:1px;text-transform:uppercase;margin:12px 0 6px;padding-left:4px">DÍA '+diaActual+'</div>';
+    }
+    html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--text)">Ronda '+round.rondaDia+' de 3</div>'
+      +'<div style="font-size:11px;color:var(--text3)">Banca inicial: <span style="color:#fbbf24;font-weight:700">'+fmtCOP(round.bancaInicio)+'</span></div></div>'
+      // Apuestas
+      +round.apuestas.map(function(a){
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px">'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="width:22px;height:22px;background:#6366f122;border:1px solid #6366f144;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#818cf8">'+a.num+'</div>'
+          +'<div><div style="font-size:12px;color:var(--text)">Apuesta: <span style="color:#fbbf24;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+fmtCOP(a.stake)+'</span></div>'
+          +'<div style="font-size:10px;color:var(--text3)">Cuota '+a.cuota.toFixed(2)+' → retorno: <span style="color:#00e87a;font-weight:700">'+fmtCOP(a.retorno)+'</span></div></div></div>'
+          +'<div style="text-align:right"><div style="font-size:11px;color:#00e87a;font-weight:700">+'+fmtCOP(a.ganancia)+'</div><div style="font-size:9px;color:var(--text3)">ganancia</div></div>'
+          +'</div>';
+      }).join('')
+      // Resultado ronda
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#00e87a0A;border:1px solid #00e87a22;border-radius:8px;margin-top:4px">'
+      +'<span style="font-size:12px;color:var(--text2)">Ganancia ronda (si aciertas las 3)</span>'
+      +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:#00e87a">+'+fmtCOP(round.guardado)+'</span></div>'
+      +'<div style="display:flex;justify-content:flex-end;margin-top:6px">'
+      +'<span style="font-size:11px;color:var(--text3)">Total acumulado proyectado: <span style="color:#fbbf24;font-weight:700">'+fmtCOP(round.totalAcumulado)+'</span></span></div>'
+      +'</div>';
+  });
+
+  html+='<div style="background:#fbbf2411;border:1px solid #fbbf2433;border-radius:12px;padding:12px 14px;margin-top:8px">'
+    +'<div style="font-size:11px;color:#fbbf24;font-weight:700;margin-bottom:4px">⚠️ Importante</div>'
+    +'<div style="font-size:11px;color:var(--text3);line-height:1.6">Esta simulación asume que aciertas las 3 apuestas por ronda. En la práctica usa solo picks validados &gt;75%. Si fallas una apuesta en la ronda, esa ronda queda en pérdida y reincias con el capital base. Nunca apuestes más del capital base guardado.</div></div>'
+    +'</div>';
+
+  document.getElementById('esc-result').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// COMBINADA
+// ══════════════════════════════════════════
+function armarCombinada(){
+  // Recolectar todos los tops >75% de todos los partidos escaneados
+  var candidatos=[];
+  Object.keys(scanStore).forEach(function(id){
+    var entry=scanStore[id];
+    if(entry&&entry.r&&entry.r.tops.length){
+      entry.r.tops.slice(0,1).forEach(function(pick){
+        var cuotaReal=pick.cuota||probToCuota(pick.prob);
+        candidatos.push({
+          partido:entry.game.home_team+' vs '+entry.game.away_team,
+          liga:entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:''}).name:''),
+          pick:pick,
+          cuotaReal:cuotaReal,
+          prob:pick.prob
+        });
+      });
+    }
+  });
+
+  // Ordenar por probabilidad y tomar máximo 3 de partidos distintos
+  candidatos.sort(function(a,b){return b.prob-a.prob;});
+  var seleccionados=[];
+  var partidosUsados={};
+  candidatos.forEach(function(c){
+    if(seleccionados.length>=3)return;
+    if(!partidosUsados[c.partido]){
+      seleccionados.push(c);
+      partidosUsados[c.partido]=true;
+    }
+  });
+
+  if(!seleccionados.length){
+    document.getElementById('combo-result').innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">'
+      +'<div style="font-size:32px;margin-bottom:10px">🎯</div>'
+      +'<p style="font-size:13px;color:var(--text3);line-height:1.6">No hay picks &gt;75% disponibles aún.<br>Primero escanea una liga o calcula un partido manual.</p></div>';
+    return;
+  }
+
+  // Calcular cuota combinada usando cuotas reales de los picks
+  var cuotaCombo=1.0;
+  var probCombo=1.0;
+  seleccionados.forEach(function(s){
+    cuotaCombo*=s.cuotaReal;
+    probCombo*=(s.prob/100);
+  });
+  cuotaCombo=Math.round(cuotaCombo*100)/100;
+  probCombo*=100;
+
+  // Apuesta sugerida para distintos montos
+  var montos=[10000,20000,50000,100000];
+  var col=probCombo>=50?'#00e87a':probCombo>=35?'#fbbf24':'#ff4060';
+
+  var html='<div class="fade-up">'
+    // Header
+    +'<div style="background:linear-gradient(135deg,#0d0d24,#07071a);border:1px solid #8b5cf644;border-radius:14px;padding:16px;margin-bottom:12px">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+    +'<div style="width:40px;height:40px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🎯</div>'
+    +'<div><div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:900">Combinada recomendada</div>'
+    +'<div style="font-size:11px;color:var(--text3)">'+seleccionados.length+' selecciones · solo picks &gt;75%</div></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">'
+    +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cuota combinada</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:22px;font-weight:700;color:#fbbf24">'+cuotaCombo.toFixed(2)+'</div></div>'
+    +'<div style="background:var(--bg2);border:1px solid '+col+'44;border-radius:10px;padding:10px;text-align:center">'
+    +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Prob. combinada</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:22px;font-weight:700;color:'+col+'">'+probCombo.toFixed(1)+'%</div></div>'
+    +'</div></div>'
+
+    // Selecciones
+    +'<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-family:\'JetBrains Mono\',monospace;letter-spacing:.08em;text-transform:uppercase">Selecciones</div>'
+    +seleccionados.map(function(s,i){
+      return '<div style="background:var(--bg2);border:1px solid #8b5cf633;border-radius:12px;padding:12px 13px;margin-bottom:8px">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+        +'<div style="flex:1">'
+        +'<div style="font-size:10px;color:#818cf8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+s.liga+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">'+s.partido+'</div>'
+        +'<div style="font-size:12px;color:var(--text2)">'+s.pick.icon+' '+s.pick.label+'</div></div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:800;color:#fbbf24">'+s.cuotaReal.toFixed(2)+'</div>'
+        +'<div style="font-size:11px;color:'+ccol(s.prob)+';font-weight:700;font-family:monospace">'+s.prob.toFixed(1)+'%</div></div></div>'
+        +'</div>';
+    }).join('')
+
+    // Tabla de retornos
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px">'
+    +'<div style="font-size:10px;color:#818cf8;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:3px solid #818cf8;padding-left:8px;margin-bottom:10px">💰 Retornos estimados si acierta</div>'
+    +montos.map(function(m){
+      var retorno=Math.round(m*cuotaCombo);
+      var ganancia=retorno-m;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a4233">'
+        +'<span style="font-size:12px;color:var(--text2)">Apuesta: <span style="color:#fbbf24;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+fmtCOP(m)+'</span></span>'
+        +'<div style="text-align:right">'
+        +'<div style="font-size:13px;font-weight:700;color:#00e87a;font-family:\'JetBrains Mono\',monospace">+'+fmtCOP(ganancia)+'</div>'
+        +'<div style="font-size:10px;color:var(--text3)">retorno total: '+fmtCOP(retorno)+'</div></div></div>';
+    }).join('')
+    +'</div>'
+
+    // Advertencia
+    +'<div style="background:#fbbf2411;border:1px solid #fbbf2433;border-radius:12px;padding:12px 14px">'
+    +'<div style="font-size:11px;color:#fbbf24;font-weight:700;margin-bottom:4px">⚠️ Recuerda</div>'
+    +'<div style="font-size:11px;color:var(--text3);line-height:1.6">La probabilidad de la combinada ('+probCombo.toFixed(1)+'%) es más baja que los picks individuales porque multiplica las probabilidades. Nunca combines más de 3 selecciones y solo usa picks &gt;75%.</div></div>'
+    +'</div>';
+
+  document.getElementById('combo-result').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// HISTORIAL
+// ══════════════════════════════════════════
+function guardarHistorial(gameId){
+  var entry=scanStore[gameId]||(manualStore&&manualStore.game&&manualStore.game.id===gameId?manualStore:null);
+  if(!entry)return;
+  var hist=JSON.parse(localStorage.getItem('dialpa_hist')||'[]');
+  var r=entry.r;
+  var item={
+    id:entry.game.id,
+    home:entry.game.home_team,away:entry.game.away_team,
+    liga:entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:''),
+    fecha:new Date().toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}),
+    hora:new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    conf:r.conf.toFixed(1),
+    picks:r.tops.slice(0,4).map(function(p){return{label:p.label,prob:p.prob.toFixed(1),cat:p.cat,icon:p.icon};}),
+    resultado:null
+  };
+  hist=hist.filter(function(h){return h.id!==item.id;});
+  hist.unshift(item);
+  hist=hist.slice(0,60);
+  localStorage.setItem('dialpa_hist',JSON.stringify(hist));
+  cerrarModal();
+  goPage('hist');
+  renderHistorial();
+  showToast('✅ Guardado en historial');
+}
+
+function renderHistorial(){
+  var hist=JSON.parse(localStorage.getItem('dialpa_hist')||'[]');
+  var el=document.getElementById('hist-list');
+  if(!hist.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">📋</div><p style="font-size:13px">Aún no hay análisis guardados.<br>Genera picks y guárdalos aquí.</p></div>';
+    return;
+  }
+  // Stats generales
+  var total=hist.filter(function(h){return h.resultado;}).length;
+  var wins=hist.filter(function(h){return h.resultado==='win';}).length;
+  var pct=total?Math.round(wins/total*100):0;
+  var col=pct>=65?'#00e87a':pct>=50?'#fbbf24':'#ff4060';
+
+  var statsHtml='';
+  if(total>0){
+    statsHtml='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">'
+      +'<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Precisión registrada</div>'
+      +'<div style="font-family:\'Syne\',sans-serif;font-size:24px;font-weight:900;color:'+col+'">'+pct+'%</div></div>'
+      +'<div style="text-align:right"><div style="font-size:12px;color:var(--text2)">'+wins+' ✅ · '+(total-wins)+' ❌</div>'
+      +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+hist.length+' análisis guardados</div></div></div>';
+  }
+
+  var html=statsHtml+hist.map(function(item,i){
+    var c=parseFloat(item.conf)>=80?'#00e87a':parseFloat(item.conf)>=70?'#6366f1':'#fbbf24';
+    var resHtml='';
+    if(item.resultado==='win')resHtml=Tag('✅ Acertó','#00e87a');
+    else if(item.resultado==='loss')resHtml=Tag('❌ Falló','#ff4060');
+    else resHtml='<button onclick="marcarRes(\''+i+'\',\'win\')" style="background:#00e87a11;border:1px solid #00e87a33;color:#00e87a;font-size:9px;padding:2px 8px;border-radius:5px;cursor:pointer;margin-right:4px">✅ Acertó</button>'
+      +'<button onclick="marcarRes(\''+i+'\',\'loss\')" style="background:#ff406011;border:1px solid #ff406033;color:#ff4060;font-size:9px;padding:2px 8px;border-radius:5px;cursor:pointer">❌ Falló</button>';
+
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;animation:fadeUp .3s ease both;animation-delay:'+i*.04+'s">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+      +'<div><div style="font-size:10px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+item.liga+'</div>'
+      +'<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;margin-top:2px">'+item.home+' vs '+item.away+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+item.fecha+' · '+item.hora+'</div></div>'
+      +'<div style="text-align:right"><div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:900;color:'+c+'">'+item.conf+'%</div>'
+      +'<div style="font-size:9px;color:var(--text3)">confianza</div></div></div>'
+      +(item.picks&&item.picks.length?
+        '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:8px">'
+        +item.picks.map(function(p){return '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--text2)">'+p.icon+' '+p.label+'</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+ccol(parseFloat(p.prob))+'">'+p.prob+'%</span></div>';}).join('')
+        +'</div>':'')
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+      +'<span style="font-size:10px;color:var(--text3)">¿Acertaste?</span>'+resHtml+'</div></div>';
+  }).join('');
+
+  el.innerHTML=html;
+}
+
+function marcarRes(idx,res){
+  var hist=JSON.parse(localStorage.getItem('dialpa_hist')||'[]');
+  if(hist[idx])hist[idx].resultado=res;
+  localStorage.setItem('dialpa_hist',JSON.stringify(hist));
+  renderHistorial();
+}
+
+function limpiarHistorial(){
+  if(confirm('¿Borrar todo el historial de picks?')){
+    localStorage.removeItem('dialpa_hist');
+    renderHistorial();
+  }
+}
+
+// ══════════════════════════════════════════
+// VALIDADOR IA (Anthropic Claude — bring your own key)
+// ══════════════════════════════════════════
+var IA_MODEL='claude-sonnet-4-5-20250929';
+
+function showIaModal(){
+  var key=localStorage.getItem('dialpa_ia_key')||'';
+  document.getElementById('ia-key-input').value=key;
+  document.getElementById('ia-key-clear').style.display=key?'block':'none';
+  document.getElementById('ia-modal').style.display='flex';
+}
+function closeIaModal(){document.getElementById('ia-modal').style.display='none';}
+
+function guardarIaKey(){
+  var v=document.getElementById('ia-key-input').value.trim();
+  if(!v){showToast('Escribe una API Key válida');return;}
+  localStorage.setItem('dialpa_ia_key',v);
+  updateIaDisp();
+  closeIaModal();
+  showToast('✅ Clave IA guardada en este dispositivo');
+}
+function borrarIaKey(){
+  localStorage.removeItem('dialpa_ia_key');
+  document.getElementById('ia-key-input').value='';
+  document.getElementById('ia-key-clear').style.display='none';
+  updateIaDisp();
+  showToast('Clave IA eliminada');
+}
+function updateIaDisp(){
+  var el=document.getElementById('ia-disp');
+  if(!el)return;
+  var has=!!localStorage.getItem('dialpa_ia_key');
+  el.textContent=has?'🟢 Activo':'⚪ Sin config.';
+  el.style.color=has?'var(--green)':'var(--text3)';
+}
+
+function callIA(systemPrompt,userPrompt){
+  var key=localStorage.getItem('dialpa_ia_key');
+  return fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:IA_MODEL,
+      max_tokens:1024,
+      system:systemPrompt,
+      messages:[{role:'user',content:userPrompt}]
+    })
+  }).then(function(r){
+    if(r.status===401)throw{msg:'API Key de IA inválida o sin permisos.'};
+    if(r.status===429)throw{msg:'Límite de la API de IA alcanzado. Intenta más tarde.'};
+    if(!r.ok)throw{msg:'Error de la IA (HTTP '+r.status+').'};
+    return r.json();
+  }).then(function(data){
+    var text=data&&data.content&&data.content[0]&&data.content[0].text;
+    if(!text)throw{msg:'Respuesta de IA vacía.'};
+    return text;
+  });
+}
+
+function parseIaJSON(text){
+  var clean=text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  var start=clean.indexOf('{'),end=clean.lastIndexOf('}');
+  if(start===-1||end===-1)throw{msg:'No se pudo interpretar la respuesta de la IA.'};
+  return JSON.parse(clean.slice(start,end+1));
+}
+
+function iaPanelHtml(entry){
+  if(!entry.iaValidation){
+    return '<p style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">La IA cruza estos picks estadísticos con criterio futbolístico general y descarta los que no le den confianza real, para quedarte solo con los más seguros.</p>'
+      +'<button onclick="iniciarValidacionIA(\''+entry.game.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#00e87a);border:none;border-radius:10px;color:#04040f;font-size:13px;font-weight:800;cursor:pointer">🤖 Validar picks con IA</button>';
+  }
+  var items=entry.iaValidation.items||[];
+  var aprobados=items.filter(function(v){return v.aprobado;}).sort(function(a,b){return (b.confianza_ia||0)-(a.confianza_ia||0);});
+  var html='';
+  if(aprobados.length){
+    var best=aprobados[0];
+    html+='<div style="background:#00e87a12;border:1px solid #00e87a44;border-radius:10px;padding:11px 12px;margin-bottom:10px">'
+      +'<div style="font-size:9px;color:#00e87a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">🏅 Mejor pick validado por IA</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">'+best.label+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);line-height:1.4">'+(best.motivo||'')+'</div>'
+      +'<div style="font-size:11px;color:#00e87a;font-weight:700;margin-top:4px">Confianza IA: '+(best.confianza_ia||0)+'%</div>'
+      +'</div>';
+  }else{
+    html+='<div style="background:#ff406012;border:1px solid #ff406044;border-radius:10px;padding:11px 12px;margin-bottom:10px;font-size:11px;color:#ff8080">⚠️ La IA no aprobó ninguno de estos picks. Mejor esperar otro partido.</div>';
+  }
+  html+='<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">'
+    +items.map(function(v){
+      var ok=v.aprobado,col=ok?'#00e87a':'#ff4060';
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px solid '+col+'33">'
+        +'<span style="font-size:13px">'+(ok?'✅':'❌')+'</span>'
+        +'<div style="flex:1"><div style="font-size:11.5px;color:var(--text);font-weight:600">'+v.label+'</div>'
+        +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+(v.motivo||'')+'</div></div>'
+        +'<div style="font-size:11px;font-weight:800;color:'+col+';flex-shrink:0">'+(v.confianza_ia!=null?v.confianza_ia+'%':'')+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div>'
+    +'<button onclick="iniciarValidacionIA(\''+entry.game.id+'\')" style="width:100%;padding:9px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;color:var(--text3);font-size:11px;cursor:pointer">🔄 Volver a validar</button>';
+  return html;
+}
+
+function iniciarValidacionIA(gameId){
+  var entry=scanStore[gameId];
+  if(!entry)return;
+  if(!localStorage.getItem('dialpa_ia_key')){showIaModal();return;}
+  var target=document.getElementById('ia-result');
+  if(target)target.innerHTML='<div style="text-align:center;padding:16px 0"><span class="spin" style="font-size:22px;display:block;margin-bottom:8px">⟳</span><p style="font-size:11px;color:var(--text3)">Analizando picks con IA...</p></div>';
+
+  var candidatos=(entry.r.tops.length?entry.r.tops:entry.r.picks.filter(function(m){return !m.esReferencia;})).slice(0,6);
+  if(!candidatos.length){
+    if(target)target.innerHTML='<p style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0">No hay picks con suficiente base estadística para validar con IA.</p>';
+    return;
+  }
+
+  var game=entry.game;
+  var lista=candidatos.map(function(m,i){return (i+1)+'. '+m.label+' — prob. estadística '+m.prob.toFixed(1)+'%, cuota estimada '+m.cuota.toFixed(2)+' ('+m.cat+')';}).join('\n');
+  var sys='Eres un analista senior de apuestas deportivas, extremadamente conservador. Tu trabajo es auditar picks generados por un modelo Poisson y detectar cuáles son realmente confiables, usando criterio futbolístico general (nivel de los equipos, contexto de la competición, sentido común). Si tienes cualquier duda razonable sobre un pick, recházalo. Responde EXCLUSIVAMENTE con un JSON válido, sin texto fuera del JSON, con este formato exacto: {"validaciones":[{"label":"texto exacto del pick","aprobado":true,"confianza_ia":0,"motivo":"máx 18 palabras"}]}';
+  var usr='Partido: '+game.home_team+' vs '+game.away_team+'\nCompetición: '+(entry.liga||'')+'\nPicks a validar:\n'+lista;
+
+  callIA(sys,usr).then(function(text){
+    var parsed=parseIaJSON(text);
+    entry.iaValidation={items:parsed.validaciones||[],ts:Date.now()};
+    var t=document.getElementById('ia-result');
+    if(t)t.innerHTML=iaPanelHtml(entry);
+  }).catch(function(e){
+    if(target)target.innerHTML='<div style="text-align:center;padding:10px 0"><p style="font-size:11px;color:#ff4060;margin-bottom:8px">'+(e.msg||'Error validando con IA.')+'</p><button onclick="iniciarValidacionIA(\''+gameId+'\')" style="background:#6366f122;border:1px solid #6366f144;color:#818cf8;font-size:10px;padding:5px 12px;border-radius:8px;cursor:pointer">Reintentar</button></div>';
+  });
+}
+
+// ══════════════════════════════════════════
+// NAVEGACIÓN
+// ══════════════════════════════════════════
+function goPage(p){
+  ['scan','manual','escalera','combo','hist'].forEach(function(id){
+    document.getElementById('page-'+id).classList.remove('active');
+    document.getElementById('nav-'+id).classList.remove('active');
+  });
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='hist')renderHistorial();
+  window.scrollTo({top:0});
+}
+
+// ══════════════════════════════════════════
+// UMBRAL
+// ══════════════════════════════════════════
+function showThrModal(){document.getElementById('thr-modal').style.display='flex';}
+function closeThrModal(){document.getElementById('thr-modal').style.display='none';}
+document.getElementById('thr-modal').addEventListener('click',function(e){if(e.target===this)closeThrModal();});
+function setThr(val){
+  THRESHOLD=parseInt(val);
+  var c=THRESHOLD>=75?'#00e87a':'#fbbf24';
+  document.getElementById('thr-disp').textContent='≥'+THRESHOLD+'%';
+  document.getElementById('thr-disp').style.color=c;
+  document.getElementById('thr-num').textContent=THRESHOLD+'%';
+  document.getElementById('thr-num').style.color=c;
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function showToast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0d0d24;border:1px solid #00e87a44;color:#00e87a;padding:10px 18px;border-radius:99px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;animation:fadeUp .3s ease';
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},2500);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+(function(){
+  // Construir liga tabs
+  var cont=document.getElementById('liga-tabs');
+  LIGAS.forEach(function(liga){
+    var btn=document.createElement('button');
+    btn.className='lpill';btn.textContent=liga.name;
+    btn.onclick=function(){
+      document.querySelectorAll('.lpill').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      currentSport=liga.key;
+      escanearLiga();
+    };
+    cont.appendChild(btn);
+  });
+
+  // Poblar tabla de referencia
+  var tbody=document.getElementById('tabla-ref-body');
+  if(tbody){
+    var colores=['#00e87a','#00e87a','#22D3EE','#22D3EE','#6366f1','#fbbf24','#fbbf24','#ff4060'];
+    TABLA_REF.forEach(function(row,i){
+      var col=colores[i]||'#6B8CAE';
+      var tr=document.createElement('tr');
+      tr.style.borderBottom='1px solid #1a1a4222';
+      tr.innerHTML=
+        '<td style="padding:7px 8px">'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:800;color:'+col+'">'+row.prob+'%</span>'
+        +'</td>'
+        +'<td style="padding:7px 8px;text-align:center">'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:800;color:#fbbf24">'+row.cuotaMin.toFixed(2)+'</span>'
+        +'</td>'
+        +'<td style="padding:7px 8px;color:var(--text2);line-height:1.4">'+row.consejo+'</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  updateIaDisp();
+  renderHistorial();
+})();
+</script>
+</body>
+</html>
