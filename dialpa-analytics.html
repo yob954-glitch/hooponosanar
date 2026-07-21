@@ -628,6 +628,17 @@ function _calcPicks(nm,an,avg,prob){
   ];
 
   var fin=_finalizarMercados(allMarkets);
+
+  // "Ambos marcan" siempre se muestra como pick fijo en fútbol (a pedido del usuario) —
+  // se elige el lado (SÍ/NO) más probable de los dos.
+  var bttsSi=fin.markets.find(function(m){return m.label==='Ambos marcan — SÍ';});
+  var bttsNo=fin.markets.find(function(m){return m.label==='Ambos marcan — NO';});
+  var bttsFijo=bttsSi&&bttsNo?(bttsSi.prob>=bttsNo.prob?bttsSi:bttsNo):(bttsSi||bttsNo);
+  if(bttsFijo&&!fin.picks.some(function(p){return p.label===bttsFijo.label;})){
+    fin.picks=[bttsFijo].concat(fin.picks);
+    fin.conf=fin.picks.slice(0,3).reduce(function(s,m){return s+m.prob;},0)/Math.max(fin.picks.slice(0,3).length,1);
+  }
+
   return Object.assign({xgH:xgH,xgA:xgA,xgT:xgT,cT:cT,tL:tL,btts:btts,
     impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw},fin);
 }
@@ -725,7 +736,6 @@ function _calcPicksBeisbol(nm,an,avg,prob){
   var runsA=Math.max(totalRuns*0.25,totalRuns-runsH);
 
   var totalF5=totalRuns*0.56, runsH_F5=runsH*0.56, runsA_F5=runsA*0.56;
-  var btts=(1-cdf(runsH,0))*(1-cdf(runsA,0))*100;
 
   var pHome=prob.home, pAway=prob.away;
 
@@ -741,8 +751,6 @@ function _calcPicksBeisbol(nm,an,avg,prob){
     {cat:"Carreras",icon:"🏠",label:nm+" menos de "+lH+" carreras", prob:cdf(runsH,Math.floor(lH))*100},
     {cat:"Carreras",icon:"✈️",label:an+" más de "+lA+" carreras",   prob:pOv(runsA,lA)},
     {cat:"Carreras",icon:"✈️",label:an+" menos de "+lA+" carreras", prob:cdf(runsA,Math.floor(lA))*100},
-    {cat:"Carreras",icon:"⚾",label:"Ambos equipos anotan — SÍ", prob:btts},
-    {cat:"Carreras",icon:"⚾",label:"Ambos equipos anotan — NO", prob:100-btts},
     {cat:"Primeras Entradas",icon:"⏱",label:"Más de "+lF5+" carreras en las primeras 5 entradas (F5)",   prob:pOv(totalF5,lF5)},
     {cat:"Primeras Entradas",icon:"⏱",label:"Menos de "+lF5+" carreras en las primeras 5 entradas (F5)", prob:cdf(totalF5,Math.floor(lF5))*100},
     {cat:"Primeras Entradas",icon:"🏠",label:nm+" más de "+(Math.round(runsH_F5*10)/10)+" carreras en F5", prob:pOv(runsH_F5,Math.round(runsH_F5)-0.5)},
