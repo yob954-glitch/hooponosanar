@@ -86,6 +86,10 @@ input:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 2px #63
 <!-- PAGE: SCANNER -->
 <div id="page-scan" class="page">
   <div style="margin-bottom:10px">
+    <div style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px">Deporte</div>
+    <div class="liga-scroll deporte-tabs" id="deporte-tabs-scan"></div>
+  </div>
+  <div style="margin-bottom:10px">
     <div style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px">Liga a escanear</div>
     <div class="liga-scroll" id="liga-tabs"></div>
   </div>
@@ -109,9 +113,13 @@ input:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 2px #63
 
 <!-- PAGE: MANUAL -->
 <div id="page-manual" class="page active">
+  <div style="margin-bottom:10px">
+    <div style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px">Deporte</div>
+    <div class="liga-scroll deporte-tabs" id="deporte-tabs-manual"></div>
+  </div>
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;margin-bottom:14px">
     <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:4px">Análisis de partido</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5">
+    <div id="m-desc" style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5">
       Escribe cualquier partido — Champions, Libertadores, BetPlay, amistosos — y obtén picks con cuota y valor esperado calculados con Poisson.
     </div>
     <div style="margin-bottom:13px">
@@ -152,6 +160,50 @@ input:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 2px #63
     </button>
   </div>
   <div id="manual-result"></div>
+
+  <!-- PROP DE JUGADOR (solo baloncesto) -->
+  <div id="prop-jugador-box" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎯</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800">Prop de jugador (puntos / rebotes)</div>
+        <div style="font-size:10px;color:var(--text3)">Tú pones el promedio real del jugador, la app calcula la probabilidad</div>
+      </div>
+    </div>
+    <div style="font-size:10.5px;color:var(--text3);line-height:1.5;margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:8px">
+      ℹ️ La app no tiene una base de datos de jugadores en vivo. Busca tú el promedio real del jugador en esta temporada (ESPN, NBA.com, etc.) y ponlo aquí — el cálculo de probabilidad sobre ese promedio sí es matemático (Poisson), no inventado.
+    </div>
+    <div style="margin-bottom:13px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px">👤 Jugador</label>
+      <input id="prop-jugador" type="text" placeholder="Ej: LeBron James" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"
+        style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:11px 12px;border-radius:9px"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px">
+      <div>
+        <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Estadística</label>
+        <select id="prop-stat" style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:11px 12px;border-radius:9px;cursor:pointer">
+          <option value="Puntos">🏀 Puntos</option>
+          <option value="Rebotes">🧱 Rebotes</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Promedio temporada</label>
+        <input id="prop-promedio" type="number" step="0.1" min="0.1" placeholder="Ej: 27.5"
+          style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:11px 12px;border-radius:9px"/>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Línea ofrecida por la casa</label>
+      <input id="prop-linea" type="number" step="0.5" placeholder="Ej: 25.5"
+        style="width:100%;background:#141D30;border:1px solid var(--border);color:var(--text);font-size:14px;padding:11px 12px;border-radius:9px"/>
+    </div>
+    <button onclick="calcPropJugador()" style="width:100%;padding:13px;border:none;border-radius:10px;cursor:pointer;
+      background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;
+      font-family:'Syne',sans-serif;font-weight:900;font-size:15px">
+      🎯 CALCULAR PROBABILIDAD
+    </button>
+    <div id="prop-result" style="margin-top:12px"></div>
+  </div>
 
   <!-- TABLA DE REFERENCIA OFICIAL -->
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px">
@@ -325,7 +377,7 @@ var currentResult= null;
 // ══════════════════════════════════════════
 // LIGAS
 // ══════════════════════════════════════════
-var LIGAS=[
+var LIGAS_FUTBOL=[
   {key:'soccer_epl',                        name:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League'},
   {key:'soccer_spain_la_liga',              name:'🇪🇸 La Liga'},
   {key:'soccer_uefa_champs_league',         name:'⭐ Champions League'},
@@ -341,7 +393,7 @@ var LIGAS=[
   {key:'soccer_uefa_europa_league',         name:'🔶 Europa League'},
 ];
 
-var COMP_AVG={
+var COMP_AVG_FUTBOL={
   soccer_epl:                        {g:2.82,c:10.4,t:2.8,ha:.11},
   soccer_spain_la_liga:              {g:2.59,c:9.9, t:3.6,ha:.12},
   soccer_uefa_champs_league:         {g:2.78,c:10.1,t:2.9,ha:.10},
@@ -357,7 +409,7 @@ var COMP_AVG={
   soccer_uefa_europa_league:         {g:2.61,c:9.6, t:3.3,ha:.09},
 };
 
-var MANUAL_AVG={
+var MANUAL_AVG_FUTBOL={
   "Eurocopa":              {g:2.47,c:9.4, t:3.0,ha:.04},
   "Copa América":          {g:2.38,c:9.2, t:3.4,ha:.07},
   "Eliminatorias CONMEBOL":{g:2.31,c:8.9, t:3.6,ha:.12},
@@ -377,9 +429,61 @@ var MANUAL_AVG={
 };
 
 // ══════════════════════════════════════════
+// BALONCESTO
+// ══════════════════════════════════════════
+var LIGAS_BALONCESTO=[
+  {key:'basketball_nba',        name:'🏀 NBA'},
+  {key:'basketball_wnba',       name:'🏀 WNBA'},
+  {key:'basketball_euroleague', name:'🏀 EuroLeague'},
+  {key:'basketball_ncaab',      name:'🏀 NCAAB'},
+];
+
+// pts = promedio de puntos TOTALES por partido (ambos equipos) · ha = ventaja de local
+var COMP_AVG_BALONCESTO={
+  basketball_nba:        {pts:227, ha:.03},
+  basketball_wnba:       {pts:163, ha:.03},
+  basketball_euroleague: {pts:162, ha:.04},
+  basketball_ncaab:      {pts:143, ha:.035},
+};
+
+var MANUAL_AVG_BALONCESTO={
+  "NBA":                {pts:227, ha:.03},
+  "WNBA":               {pts:163, ha:.03},
+  "EuroLeague":         {pts:162, ha:.04},
+  "NCAAB":              {pts:143, ha:.035},
+  "Otro / Amistoso":    {pts:160, ha:.02},
+};
+
+// ══════════════════════════════════════════
+// BÉISBOL
+// ══════════════════════════════════════════
+var LIGAS_BEISBOL=[
+  {key:'baseball_mlb', name:'⚾ MLB'},
+  {key:'baseball_kbo', name:'⚾ KBO (Corea)'},
+  {key:'baseball_npb', name:'⚾ NPB (Japón)'},
+];
+
+// runs = promedio de carreras TOTALES por partido (ambos equipos) · ha = ventaja de local
+var COMP_AVG_BEISBOL={
+  baseball_mlb: {runs:8.7, ha:.04},
+  baseball_kbo: {runs:9.6, ha:.04},
+  baseball_npb: {runs:7.3, ha:.04},
+};
+
+var MANUAL_AVG_BEISBOL={
+  "MLB":            {runs:8.7, ha:.04},
+  "KBO (Corea)":    {runs:9.6, ha:.04},
+  "NPB (Japón)":    {runs:7.3, ha:.04},
+  "Otro / Amistoso":{runs:8.5, ha:.03},
+};
+
+var LIGAS_ALL=LIGAS_FUTBOL.concat(LIGAS_BALONCESTO,LIGAS_BEISBOL);
+
+// ══════════════════════════════════════════
 // POISSON
 // ══════════════════════════════════════════
-function poi(l,k){if(l<=0)return k===0?1:0;var f=1;for(var i=2;i<=k;i++)f*=i;return Math.exp(-l)*Math.pow(l,k)/f;}
+function logFact(k){var s=0;for(var i=2;i<=k;i++)s+=Math.log(i);return s;}
+function poi(l,k){if(l<=0)return k===0?1:0;if(k<0)return 0;return Math.exp(-l+k*Math.log(l)-logFact(k));}
 function cdf(l,n){var s=0;for(var k=0;k<=n;k++)s+=poi(l,k);return Math.min(s,1);}
 function pOv(l,line){return(1-cdf(l,Math.floor(line)))*100;}
 
@@ -408,7 +512,7 @@ function calcImplied(game){
 function probToCuota(p){
   if(p<=0)return 99;
   var cuotaJusta=100/p;
-  return Math.round((cuotaJusta*0.92)*100)/100;
+  return Math.max(1.01,Math.round((cuotaJusta*0.92)*100)/100);
 }
 
 // Valor esperado: EV = (prob/100 * cuota) - 1
@@ -523,27 +627,29 @@ function _calcPicks(nm,an,avg,prob){
     {cat:"Tarjetas", icon:"🟨",label:"Menos de 4.5 tarjetas",    prob:cdf(tL,4)*100},
   ];
 
-  // Calcular cuota estimada y EV para cada mercado
+  var fin=_finalizarMercados(allMarkets);
+  return Object.assign({xgH:xgH,xgA:xgA,xgT:xgT,cT:cT,tL:tL,btts:btts,
+    impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw},fin);
+}
+
+// Probabilidad exacta de k goles
+function pExacto(lambda,k){
+  return poi(lambda,k)*100;
+}
+
+// Toma un promedio y arma un filtro común de picks/tops/confianza — igual criterio en los 3 deportes
+function _finalizarMercados(allMarkets){
   var ms=allMarkets.map(function(m){
-    var p=Math.min(Math.max(m.prob,0),99.0);
+    var p=Math.min(Math.max(m.prob,0),99.5);
     var cuota=probToCuota(p);
     var ev=calcEV(p,cuota);
     return Object.assign({},m,{prob:p,cuota:cuota,ev:ev});
   });
-
-  // Ordenar todo por EV desc
   var msSorted=ms.slice().sort(function(a,b){
     if(Math.abs(b.ev-a.ev)>0.005) return b.ev-a.ev;
     return b.cuota-a.cuota;
   });
-
-  // Picks principales: prob >= THRESHOLD (la exigencia de "valor" vs. la tabla
-  // se muestra como referencia por pick, pero no bloquea — ver nota más abajo)
-  var picks=msSorted.filter(function(m){
-    return m.prob>=THRESHOLD;
-  });
-
-  // Si no hay suficientes picks, mostrar los mejores disponibles como referencia
+  var picks=msSorted.filter(function(m){return m.prob>=THRESHOLD;});
   if(picks.length<3){
     var usados=picks.map(function(p){return p.label;});
     var extras=msSorted.filter(function(m){
@@ -552,31 +658,123 @@ function _calcPicks(nm,an,avg,prob){
     extras=extras.map(function(m){return Object.assign({},m,{esReferencia:true});});
     picks=picks.concat(extras);
   }
-
-  // Tops: picks muy seguros (>=75% de probabilidad del modelo Poisson)
-  var tops=msSorted.filter(function(m){
-    return m.prob>=MUY_SEGURO;
-  }).slice(0,5);
-
+  var tops=msSorted.filter(function(m){return m.prob>=MUY_SEGURO;}).slice(0,5);
   var conf=picks.slice(0,3).reduce(function(s,m){return s+m.prob;},0)/Math.max(picks.slice(0,3).length,1);
-
-  return{xgH:xgH,xgA:xgA,xgT:xgT,cT:cT,tL:tL,btts:btts,
-    impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw,
-    markets:ms,picks:picks,tops:tops,conf:conf};
+  return{markets:ms,picks:picks,tops:tops,conf:conf};
 }
 
-// Probabilidad exacta de k goles
-function pExacto(lambda,k){
-  return poi(lambda,k)*100;
+// ══════════════════════════════════════════
+// MERCADOS — BALONCESTO
+// ══════════════════════════════════════════
+function _calcPicksBaloncesto(nm,an,avg,prob){
+  var favP=Math.max(prob.home,prob.away)/100;
+  var ha=avg.ha;
+
+  var totalPts=Math.max(130,avg.pts*(1+(favP-.50)*.10));
+  var ptsH=(totalPts/2)*(1+ha+(prob.home-prob.away)/500);
+  var ptsA=Math.max(totalPts*0.35,totalPts-ptsH);
+
+  var total1Q=totalPts*0.25, ptsH_1Q=ptsH*0.25, ptsA_1Q=ptsA*0.25;
+  var totalHT=totalPts*0.50, ptsH_HT=ptsH*0.50, ptsA_HT=ptsA*0.50;
+
+  var pHome=prob.home, pAway=prob.away;
+
+  var lTot=Math.round(totalPts)-0.5, lH=Math.round(ptsH)-0.5, lA=Math.round(ptsA)-0.5;
+  var lHT=Math.round(totalHT)-0.5, l1Q=Math.round(total1Q)-0.5;
+
+  var allMarkets=[
+    // Puntos totales del partido
+    {cat:"Puntos",icon:"🏀",label:"Más de "+(lTot-8)+" puntos totales",     prob:pOv(totalPts,lTot-8)},
+    {cat:"Puntos",icon:"🏀",label:"Más de "+lTot+" puntos totales",         prob:pOv(totalPts,lTot)},
+    {cat:"Puntos",icon:"🏀",label:"Más de "+(lTot+8)+" puntos totales",     prob:pOv(totalPts,lTot+8)},
+    {cat:"Puntos",icon:"🏀",label:"Menos de "+lTot+" puntos totales",       prob:cdf(totalPts,Math.floor(lTot))*100},
+    {cat:"Puntos",icon:"🏀",label:"Menos de "+(lTot+8)+" puntos totales",   prob:cdf(totalPts,Math.floor(lTot+8))*100},
+    // Puntos por equipo (partido completo)
+    {cat:"Puntos",icon:"🏠",label:nm+" más de "+lH+" puntos",   prob:pOv(ptsH,lH)},
+    {cat:"Puntos",icon:"🏠",label:nm+" menos de "+lH+" puntos", prob:cdf(ptsH,Math.floor(lH))*100},
+    {cat:"Puntos",icon:"✈️",label:an+" más de "+lA+" puntos",   prob:pOv(ptsA,lA)},
+    {cat:"Puntos",icon:"✈️",label:an+" menos de "+lA+" puntos", prob:cdf(ptsA,Math.floor(lA))*100},
+    // Cuartos y mitades
+    {cat:"Cuartos y Mitades",icon:"⏱",label:"Más de "+l1Q+" puntos en el 1er cuarto",     prob:pOv(total1Q,l1Q)},
+    {cat:"Cuartos y Mitades",icon:"⏱",label:"Menos de "+l1Q+" puntos en el 1er cuarto",   prob:cdf(total1Q,Math.floor(l1Q))*100},
+    {cat:"Cuartos y Mitades",icon:"⏱",label:"Más de "+lHT+" puntos en la 1ª mitad",        prob:pOv(totalHT,lHT)},
+    {cat:"Cuartos y Mitades",icon:"⏱",label:"Menos de "+lHT+" puntos en la 1ª mitad",      prob:cdf(totalHT,Math.floor(lHT))*100},
+    {cat:"Cuartos y Mitades",icon:"🏠",label:nm+" más de "+(Math.round(ptsH_HT)-0.5)+" puntos en la 1ª mitad", prob:pOv(ptsH_HT,Math.round(ptsH_HT)-0.5)},
+    {cat:"Cuartos y Mitades",icon:"✈️",label:an+" más de "+(Math.round(ptsA_HT)-0.5)+" puntos en la 1ª mitad", prob:pOv(ptsA_HT,Math.round(ptsA_HT)-0.5)},
+    {cat:"Cuartos y Mitades",icon:"🏠",label:nm+" más de "+(Math.round(ptsH_1Q)-0.5)+" puntos en el 1er cuarto", prob:pOv(ptsH_1Q,Math.round(ptsH_1Q)-0.5)},
+    {cat:"Cuartos y Mitades",icon:"✈️",label:an+" más de "+(Math.round(ptsA_1Q)-0.5)+" puntos en el 1er cuarto", prob:pOv(ptsA_1Q,Math.round(ptsA_1Q)-0.5)},
+    // Resultado
+    {cat:"Resultado",icon:"🏆",label:nm+" gana",prob:pHome},
+    {cat:"Resultado",icon:"🏆",label:an+" gana",prob:pAway},
+  ];
+
+  var fin=_finalizarMercados(allMarkets);
+  return Object.assign({ptsH:ptsH,ptsA:ptsA,totalPts:totalPts,total1Q:total1Q,totalHT:totalHT,
+    impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw},fin);
 }
 
-function calcPicksFromOdds(game,sport){
-  var avg=COMP_AVG[sport]||{g:2.60,c:9.6,t:3.2,ha:.10};
-  return _calcPicks(game.home_team,game.away_team,avg,calcImplied(game));
+// ══════════════════════════════════════════
+// MERCADOS — BÉISBOL
+// ══════════════════════════════════════════
+function _calcPicksBeisbol(nm,an,avg,prob){
+  var favP=Math.max(prob.home,prob.away)/100;
+  var ha=avg.ha;
+
+  var totalRuns=Math.max(4,avg.runs*(1+(favP-.50)*.15));
+  var runsH=(totalRuns/2)*(1+ha+(prob.home-prob.away)/300);
+  var runsA=Math.max(totalRuns*0.25,totalRuns-runsH);
+
+  var totalF5=totalRuns*0.56, runsH_F5=runsH*0.56, runsA_F5=runsA*0.56;
+  var btts=(1-cdf(runsH,0))*(1-cdf(runsA,0))*100;
+
+  var pHome=prob.home, pAway=prob.away;
+
+  var lTot=Math.round(totalRuns)-0.5, lH=Math.round(runsH)-0.5, lA=Math.round(runsA)-0.5;
+  var lF5=Math.round(totalF5)-0.5;
+
+  var allMarkets=[
+    {cat:"Carreras",icon:"⚾",label:"Más de "+lTot+" carreras totales",       prob:pOv(totalRuns,lTot)},
+    {cat:"Carreras",icon:"⚾",label:"Más de "+(lTot+2)+" carreras totales",   prob:pOv(totalRuns,lTot+2)},
+    {cat:"Carreras",icon:"⚾",label:"Menos de "+lTot+" carreras totales",     prob:cdf(totalRuns,Math.floor(lTot))*100},
+    {cat:"Carreras",icon:"⚾",label:"Menos de "+(lTot+2)+" carreras totales", prob:cdf(totalRuns,Math.floor(lTot+2))*100},
+    {cat:"Carreras",icon:"🏠",label:nm+" más de "+lH+" carreras",   prob:pOv(runsH,lH)},
+    {cat:"Carreras",icon:"🏠",label:nm+" menos de "+lH+" carreras", prob:cdf(runsH,Math.floor(lH))*100},
+    {cat:"Carreras",icon:"✈️",label:an+" más de "+lA+" carreras",   prob:pOv(runsA,lA)},
+    {cat:"Carreras",icon:"✈️",label:an+" menos de "+lA+" carreras", prob:cdf(runsA,Math.floor(lA))*100},
+    {cat:"Carreras",icon:"⚾",label:"Ambos equipos anotan — SÍ", prob:btts},
+    {cat:"Carreras",icon:"⚾",label:"Ambos equipos anotan — NO", prob:100-btts},
+    {cat:"Primeras Entradas",icon:"⏱",label:"Más de "+lF5+" carreras en las primeras 5 entradas (F5)",   prob:pOv(totalF5,lF5)},
+    {cat:"Primeras Entradas",icon:"⏱",label:"Menos de "+lF5+" carreras en las primeras 5 entradas (F5)", prob:cdf(totalF5,Math.floor(lF5))*100},
+    {cat:"Primeras Entradas",icon:"🏠",label:nm+" más de "+(Math.round(runsH_F5*10)/10)+" carreras en F5", prob:pOv(runsH_F5,Math.round(runsH_F5)-0.5)},
+    {cat:"Primeras Entradas",icon:"✈️",label:an+" más de "+(Math.round(runsA_F5*10)/10)+" carreras en F5", prob:pOv(runsA_F5,Math.round(runsA_F5)-0.5)},
+    {cat:"Resultado",icon:"🏆",label:nm+" gana",prob:pHome},
+    {cat:"Resultado",icon:"🏆",label:an+" gana",prob:pAway},
+  ];
+
+  var fin=_finalizarMercados(allMarkets);
+  return Object.assign({runsH:runsH,runsA:runsA,totalRuns:totalRuns,totalF5:totalF5,
+    impliedHome:prob.home,impliedAway:prob.away,impliedDraw:prob.draw},fin);
 }
-function calcPicksManual(home,away,comp){
-  var avg=MANUAL_AVG[comp]||{g:2.60,c:9.6,t:3.2,ha:.10};
-  return _calcPicks(home,away,avg,{home:52,away:48,draw:0});
+
+// ══════════════════════════════════════════
+// DESPACHO POR DEPORTE
+// ══════════════════════════════════════════
+var DEPORTES={
+  futbol:     {nombre:'⚽ Fútbol',     ligas:LIGAS_FUTBOL,     compAvg:COMP_AVG_FUTBOL,     manualAvg:MANUAL_AVG_FUTBOL,     calc:_calcPicks,           defAvg:{g:2.60,c:9.6,t:3.2,ha:.10}},
+  baloncesto: {nombre:'🏀 Baloncesto', ligas:LIGAS_BALONCESTO, compAvg:COMP_AVG_BALONCESTO, manualAvg:MANUAL_AVG_BALONCESTO, calc:_calcPicksBaloncesto, defAvg:{pts:160,ha:.03}},
+  beisbol:    {nombre:'⚾ Béisbol',    ligas:LIGAS_BEISBOL,    compAvg:COMP_AVG_BEISBOL,    manualAvg:MANUAL_AVG_BEISBOL,    calc:_calcPicksBeisbol,    defAvg:{runs:8.5,ha:.03}},
+};
+var currentDeporte='futbol';
+
+function calcPicksFromOdds(game,sport,deporte){
+  var d=DEPORTES[deporte||currentDeporte];
+  var avg=d.compAvg[sport]||d.defAvg;
+  return d.calc(game.home_team,game.away_team,avg,calcImplied(game));
+}
+function calcPicksManual(home,away,comp,deporte){
+  var d=DEPORTES[deporte||currentDeporte];
+  var avg=d.manualAvg[comp]||d.defAvg;
+  return d.calc(home,away,avg,{home:52,away:48,draw:0});
 }
 
 // ══════════════════════════════════════════
@@ -614,13 +812,14 @@ function timeLabel(game){
 // ══════════════════════════════════════════
 function escanearLiga(){
   if(!currentSport){document.getElementById('scan-status').textContent='Selecciona una liga primero';return;}
+  var deporteEnCurso=currentDeporte;
   clearTimeout(refreshTimer);clearInterval(window._cdInterval);
   document.getElementById('scan-cards').innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--text3)"><span class="spin" style="font-size:32px;display:block;margin-bottom:12px">⟳</span><p style="font-size:12px">Buscando partidos próximos 48h...</p></div>';
   document.getElementById('scan-status').textContent='Escaneando...';
   document.getElementById('next-refresh').textContent='';
   fetchLiga(currentSport).then(function(data){
     var games=(data||[]).filter(dentro48h);
-    renderScanCards(games,currentSport);
+    renderScanCards(games,currentSport,deporteEnCurso);
     lastScanTime=new Date();
     iniciarCountdown();
     refreshTimer=setTimeout(function(){escanearLiga();},REFRESH_H*3600000);
@@ -648,8 +847,34 @@ function iniciarCountdown(){
 // ══════════════════════════════════════════
 function ccol(p){return p>=80?'#00e87a':p>=70?'#6366f1':p>=60?'#fbbf24':'#444488';}
 function clbl(p){return p>=80?'MUY SEGURO':p>=75?'SEGURO':p>=70?'VÁLIDO':'BAJO';}
-function catcol(c){return c==='Goles'?'#38bdf8':c==='Córners'?'#818cf8':c==='Tarjetas'?'#fbbf24':c==='Resultado'?'#00e87a':c==='1er Tiempo'?'#a78bfa':'#6366f1';}
+function catcol(c){
+  return c==='Goles'?'#38bdf8':c==='Córners'?'#818cf8':c==='Tarjetas'?'#fbbf24':c==='Resultado'?'#00e87a'
+    :c==='1er Tiempo'?'#a78bfa':c==='Puntos'?'#38bdf8':c==='Cuartos y Mitades'?'#a78bfa'
+    :c==='Carreras'?'#38bdf8':c==='Primeras Entradas'?'#a78bfa':c==='Rebotes'?'#fbbf24':'#6366f1';
+}
 function fmtCOP(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);}
+
+// Cajas de métricas rápidas (xG/córners/tarjetas en fútbol, puntos/cuartos en baloncesto, carreras/F5 en béisbol)
+function statBoxesFor(deporte,r){
+  if(deporte==='baloncesto'){
+    return [['Pts L',r.ptsH.toFixed(1),'#38bdf8'],['Pts V',r.ptsA.toFixed(1),'#f59e0b'],['Total 1Q',r.total1Q.toFixed(1),'#818cf8'],['Total 1ª mitad',r.totalHT.toFixed(1),'#fbbf24']];
+  }
+  if(deporte==='beisbol'){
+    return [['Carr. L',r.runsH.toFixed(2),'#38bdf8'],['Carr. V',r.runsA.toFixed(2),'#f59e0b'],['Total F5',r.totalF5.toFixed(2),'#818cf8'],['Total 9',r.totalRuns.toFixed(2),'#fbbf24']];
+  }
+  return [['xG L',r.xgH.toFixed(2),'#38bdf8'],['xG V',r.xgA.toFixed(2),'#f59e0b'],['λ Cór',r.cT.toFixed(1),'#818cf8'],['λ Tarj',r.tL.toFixed(1),'#fbbf24']];
+}
+
+// Categorías presentes en los mercados de un resultado (para armar las pestañas del modal dinámicamente)
+function categoriasDe(r){
+  var cats=[];
+  r.markets.forEach(function(m){if(cats.indexOf(m.cat)===-1)cats.push(m.cat);});
+  return cats;
+}
+function catIcon(r,cat){
+  var m=r.markets.find(function(x){return x.cat===cat;});
+  return m?m.icon:'📌';
+}
 
 function Tag(t,col){
   return '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;font-weight:700;'
@@ -707,9 +932,10 @@ function PickRow(m,i){
 // ══════════════════════════════════════════
 // RENDER SCANNER CARDS
 // ══════════════════════════════════════════
-function renderScanCards(games,sport){
+function renderScanCards(games,sport,deporte){
+  deporte=deporte||currentDeporte;
   scanStore={};
-  var ligaInfo=LIGAS.find(function(l){return l.key===sport;})||{name:sport};
+  var ligaInfo=LIGAS_ALL.find(function(l){return l.key===sport;})||{name:sport};
   var container=document.getElementById('scan-cards');
   if(!games.length){
     container.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">'
@@ -719,8 +945,8 @@ function renderScanCards(games,sport){
     return;
   }
   var entries=games.map(function(game){
-    var r=calcPicksFromOdds(game,sport);
-    scanStore[game.id]={game:game,sport:sport,liga:ligaInfo.name,r:r};
+    var r=calcPicksFromOdds(game,sport,deporte);
+    scanStore[game.id]={game:game,sport:sport,liga:ligaInfo.name,deporte:deporte,r:r};
     return{game:game,r:r};
   }).sort(function(a,b){
     var ap=a.r.picks.length?a.r.picks[0].prob:0,bp=b.r.picks.length?b.r.picks[0].prob:0;
@@ -759,7 +985,7 @@ function renderScanCards(games,sport){
       +'<div style="flex:1;text-align:right"><div style="font-size:15px;font-weight:800;color:var(--text);font-family:\'Syne\',sans-serif;line-height:1.2">'+game.away_team+'</div>'
       +(odds?'<div style="font-size:12px;color:#fbbf24;font-family:monospace;margin-top:3px">'+odds.away.toFixed(2)+'</div>':'')+'</div></div>'
       +'<div style="padding:8px 13px 0;display:flex;gap:5px">'
-      +[['xG L',r.xgH.toFixed(2),'#38bdf8'],['xG V',r.xgA.toFixed(2),'#f59e0b'],['λ Cór',r.cT.toFixed(1),'#818cf8'],['λ Tarj',r.tL.toFixed(1),'#fbbf24']]
+      +statBoxesFor(deporte,r)
        .map(function(x){return '<div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 4px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">'+x[0]+'</div></div>';}).join('')
       +'</div>'
       +(isHot?'<div style="padding:8px 13px 0"><div style="font-size:9px;color:#00e87a;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:2px solid #00e87a;padding-left:6px;margin-bottom:6px">🏆 PICKS CON VALOR</div>'
@@ -819,7 +1045,7 @@ function renderTabList(r){
 function renderModalContent(entry){
   var r=entry.r,game=entry.game,odds=getOdds(game);
   var prob={home:r.impliedHome,away:r.impliedAway,draw:r.impliedDraw};
-  var ligaName=entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:'');
+  var ligaName=entry.liga||(entry.sport?(LIGAS_ALL.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:'');
 
   var html='<div class="fade-up">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
@@ -836,7 +1062,7 @@ function renderModalContent(entry){
        ].map(function(x){return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">'+x[0]+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:#fbbf24">'+x[1]+'</div><div style="font-size:10px;color:#818cf8;font-weight:600;margin-top:3px">'+x[3]+'% impl.</div></div>';}).join('')
       +'</div>':'')
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px">'
-    +[['xG Local',r.xgH.toFixed(2),'#38bdf8'],['xG Visita',r.xgA.toFixed(2),'#f59e0b'],['λ Córners',r.cT.toFixed(1),'#818cf8'],['λ Tarjetas',r.tL.toFixed(1),'#fbbf24']]
+    +statBoxesFor(entry.deporte||'futbol',r)
      .map(function(x){return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 5px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">'+x[0]+'</div></div>';}).join('')
     +'</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:'+ccol(r.conf)+'0F;border:1px solid '+ccol(r.conf)+'44;border-radius:11px;margin-bottom:12px">'
@@ -852,8 +1078,9 @@ function renderModalContent(entry){
       +'</div>':'')
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px">'
     +'<div style="display:flex;background:var(--bg);border-bottom:1px solid var(--border)">'
-    +['picks','Goles','Resultado','1er Tiempo','Córners','Tarjetas'].map(function(t){
-       return '<button class="mtab" data-tab="'+t+'" onclick="setModalTab(\''+t+'\')" style="flex:1;padding:10px 2px;border:none;background:transparent;cursor:pointer;font-size:9px;font-weight:600;color:'+(modalTab===t?'#6366f1':'#6666aa')+';border-bottom:2px solid '+(modalTab===t?'#6366f1':'transparent')+';transition:color .15s;white-space:nowrap">'+(t==='picks'?'✅ PICKS':t==='Goles'?'⚽ GOLES':t==='Resultado'?'🏆 RESULT.':t==='1er Tiempo'?'⏱ 1T':t==='Córners'?'⌀ CÓRN.':'🟨 TARJ.')+'</button>';
+    +['picks'].concat(categoriasDe(r)).map(function(t){
+       var lbl=t==='picks'?'✅ PICKS':(catIcon(r,t)+' '+t.toUpperCase());
+       return '<button class="mtab" data-tab="'+t+'" onclick="setModalTab(\''+t+'\')" style="flex:1;padding:10px 2px;border:none;background:transparent;cursor:pointer;font-size:9px;font-weight:600;color:'+(modalTab===t?'#6366f1':'#6666aa')+';border-bottom:2px solid '+(modalTab===t?'#6366f1':'transparent')+';transition:color .15s;white-space:nowrap">'+lbl+'</button>';
      }).join('')
     +'</div><div id="modal-tab-content" style="padding:13px 14px">'+renderTabList(r)+'</div></div>'
     +'<div style="background:linear-gradient(135deg,#6366f10F,#00e87a08);border:1px solid #6366f144;border-radius:13px;padding:14px;margin-bottom:12px">'
@@ -878,9 +1105,9 @@ function calcManual(){
   if(away.length<2){document.getElementById('m-away').style.borderColor='#ff4060';return;}
   document.getElementById('m-home').style.borderColor='';
   document.getElementById('m-away').style.borderColor='';
-  var r=calcPicksManual(home,away,comp);
+  var r=calcPicksManual(home,away,comp,currentDeporte);
   var fakeGame={id:'manual-'+Date.now(),home_team:home,away_team:away,commence_time:null,bookmakers:[]};
-  manualStore={game:fakeGame,sport:null,liga:comp,r:r};
+  manualStore={game:fakeGame,sport:null,liga:comp,deporte:currentDeporte,r:r};
   scanStore[fakeGame.id]=manualStore;
   var html='<div class="card'+(r.tops.length?' hot':'')+' fade-up">'
     +'<div style="height:3px;background:linear-gradient(90deg,#6366f1,#00e87a)"></div>'
@@ -889,7 +1116,7 @@ function calcManual(){
     +'<div style="font-family:\'Syne\',sans-serif;font-size:16px;font-weight:900;margin-top:4px">'+home+' <span style="color:var(--text3);font-weight:400;font-size:13px">vs</span> '+away+'</div></div>'
     // Métricas
     +'<div style="padding:8px 13px 0;display:flex;gap:5px">'
-    +[['xG L',r.xgH.toFixed(2),'#38bdf8'],['xG V',r.xgA.toFixed(2),'#f59e0b'],['λ Cór',r.cT.toFixed(1),'#818cf8'],['λ Tarj',r.tL.toFixed(1),'#fbbf24']]
+    +statBoxesFor(currentDeporte,r)
      .map(function(x){return '<div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 4px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">'+x[0]+'</div></div>';}).join('')
     +'</div>'
     // Picks con cuota
@@ -1055,7 +1282,7 @@ function armarCombinada(){
         var cuotaReal=pick.cuota||probToCuota(pick.prob);
         candidatos.push({
           partido:entry.game.home_team+' vs '+entry.game.away_team,
-          liga:entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:''}).name:''),
+          liga:entry.liga||(entry.sport?(LIGAS_ALL.find(function(l){return l.key===entry.sport;})||{name:''}).name:''),
           pick:pick,
           cuotaReal:cuotaReal,
           prob:pick.prob
@@ -1162,7 +1389,7 @@ function guardarHistorial(gameId){
   var item={
     id:entry.game.id,
     home:entry.game.home_team,away:entry.game.away_team,
-    liga:entry.liga||(entry.sport?(LIGAS.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:''),
+    liga:entry.liga||(entry.sport?(LIGAS_ALL.find(function(l){return l.key===entry.sport;})||{name:entry.sport}).name:''),
     fecha:new Date().toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}),
     hora:new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
     conf:r.conf.toFixed(1),
@@ -1315,7 +1542,7 @@ function parseIaJSON(text){
 function iaPanelHtml(entry){
   if(!entry.iaValidation){
     var debil=!entry.r.tops.length;
-    return '<p style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">La IA cruza estos picks estadísticos con criterio futbolístico general y descarta los que no le den confianza real, para quedarte solo con los más seguros.</p>'
+    return '<p style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">La IA cruza estos picks estadísticos con criterio deportivo general y descarta los que no le den confianza real, para quedarte solo con los más seguros.</p>'
       +(debil?'<div style="background:#fbbf2412;border:1px solid #fbbf2444;border-radius:9px;padding:9px 10px;margin-bottom:10px;font-size:10.5px;color:#fbbf24;line-height:1.5">⚠️ Este partido no tiene picks que superen tu umbral de seguridad ('+THRESHOLD+'%). Puedes igual pedirle una opinión a la IA sobre los mejores disponibles, pero es probable que los rechace — eso también es información útil (te dice que mejor no juegues este partido).</div>':'')
       +'<button onclick="iniciarValidacionIA(\''+entry.game.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#00e87a);border:none;border-radius:10px;color:#04040f;font-size:13px;font-weight:800;cursor:pointer">🤖 Validar picks con IA</button>';
   }
@@ -1366,8 +1593,9 @@ function iniciarValidacionIA(gameId){
     var flag=m.esReferencia?' [OJO: está por DEBAJO del umbral de seguridad de la app ('+THRESHOLD+'%), es solo referencia — sé especialmente estricto con este]':'';
     return (i+1)+'. '+m.label+' — prob. estadística '+m.prob.toFixed(1)+'%, cuota estimada '+m.cuota.toFixed(2)+' ('+m.cat+')'+flag;
   }).join('\n');
-  var sys='Eres un analista senior de apuestas deportivas, extremadamente conservador. Tu trabajo es auditar picks generados por un modelo Poisson y detectar cuáles son realmente confiables, usando criterio futbolístico general (nivel de los equipos, contexto de la competición, sentido común). Si tienes cualquier duda razonable sobre un pick, recházalo. Si un pick está marcado como por debajo del umbral de seguridad, recházalo salvo que tengas una razón muy fuerte para aprobarlo. Responde EXCLUSIVAMENTE con un JSON válido, sin texto fuera del JSON, con este formato exacto: {"validaciones":[{"label":"texto exacto del pick","aprobado":true,"confianza_ia":0,"motivo":"máx 18 palabras"}]}';
-  var usr='Partido: '+game.home_team+' vs '+game.away_team+'\nCompetición: '+(entry.liga||'')+'\nPicks a validar:\n'+lista;
+  var sys='Eres un analista senior de apuestas deportivas, extremadamente conservador. Tu trabajo es auditar picks generados por un modelo Poisson (para fútbol, baloncesto o béisbol, según se indique) y detectar cuáles son realmente confiables, usando criterio deportivo general (nivel de los equipos, contexto de la competición, sentido común). Si tienes cualquier duda razonable sobre un pick, recházalo. Si un pick está marcado como por debajo del umbral de seguridad, recházalo salvo que tengas una razón muy fuerte para aprobarlo. Responde EXCLUSIVAMENTE con un JSON válido, sin texto fuera del JSON, con este formato exacto: {"validaciones":[{"label":"texto exacto del pick","aprobado":true,"confianza_ia":0,"motivo":"máx 18 palabras"}]}';
+  var deporteNombre=(DEPORTES[entry.deporte||'futbol']||{}).nombre||'';
+  var usr='Deporte: '+deporteNombre+'\nPartido: '+game.home_team+' vs '+game.away_team+'\nCompetición: '+(entry.liga||'')+'\nPicks a validar:\n'+lista;
 
   callIA(sys,usr).then(function(text){
     var parsed=parseIaJSON(text);
@@ -1377,6 +1605,104 @@ function iniciarValidacionIA(gameId){
   }).catch(function(e){
     if(target)target.innerHTML='<div style="text-align:center;padding:10px 0"><p style="font-size:11px;color:#ff4060;margin-bottom:8px">'+(e.msg||'Error validando con IA.')+'</p><button onclick="iniciarValidacionIA(\''+gameId+'\')" style="background:#6366f122;border:1px solid #6366f144;color:#818cf8;font-size:10px;padding:5px 12px;border-radius:8px;cursor:pointer">Reintentar</button></div>';
   });
+}
+
+// ══════════════════════════════════════════
+// PROP DE JUGADOR (baloncesto)
+// ══════════════════════════════════════════
+function calcPropJugador(){
+  var jugador=document.getElementById('prop-jugador').value.trim()||'Jugador';
+  var stat=document.getElementById('prop-stat').value;
+  var prom=parseFloat(document.getElementById('prop-promedio').value);
+  var linea=parseFloat(document.getElementById('prop-linea').value);
+  var target=document.getElementById('prop-result');
+  if(!prom||prom<=0){document.getElementById('prop-promedio').style.borderColor='#ff4060';return;}
+  if(!linea||linea<=0){document.getElementById('prop-linea').style.borderColor='#ff4060';return;}
+  document.getElementById('prop-promedio').style.borderColor='';
+  document.getElementById('prop-linea').style.borderColor='';
+
+  var pOver=Math.min(Math.max(pOv(prom,Math.floor(linea)),0),99.5);
+  var pUnder=Math.min(Math.max(100-pOver,0),99.5);
+  var icon=stat==='Puntos'?'🏀':'🧱';
+  var mOver={cat:stat,icon:icon,label:jugador+' — Más de '+linea+' '+stat.toLowerCase(),prob:pOver};
+  var mUnder={cat:stat,icon:icon,label:jugador+' — Menos de '+linea+' '+stat.toLowerCase(),prob:pUnder};
+  mOver.cuota=probToCuota(mOver.prob); mOver.ev=calcEV(mOver.prob,mOver.cuota);
+  mUnder.cuota=probToCuota(mUnder.prob); mUnder.ev=calcEV(mUnder.prob,mUnder.cuota);
+  target.innerHTML='<div style="font-size:10px;color:var(--text3);margin-bottom:8px">Calculado con Poisson usando λ='+prom+' (el promedio que ingresaste)</div>'+PickRow(mOver,0)+PickRow(mUnder,1);
+}
+
+// ══════════════════════════════════════════
+// SELECTOR DE DEPORTE
+// ══════════════════════════════════════════
+function renderDeporteTabs(){
+  ['deporte-tabs-scan','deporte-tabs-manual'].forEach(function(id){
+    var cont=document.getElementById(id);
+    if(!cont)return;
+    cont.innerHTML='';
+    Object.keys(DEPORTES).forEach(function(key){
+      var btn=document.createElement('button');
+      btn.className='lpill'+(key===currentDeporte?' active':'');
+      btn.textContent=DEPORTES[key].nombre;
+      btn.onclick=function(){setDeporte(key);};
+      cont.appendChild(btn);
+    });
+  });
+}
+
+function renderLigaTabs(){
+  var cont=document.getElementById('liga-tabs');
+  if(!cont)return;
+  cont.innerHTML='';
+  DEPORTES[currentDeporte].ligas.forEach(function(liga){
+    var btn=document.createElement('button');
+    btn.className='lpill';btn.textContent=liga.name;
+    btn.onclick=function(){
+      cont.querySelectorAll('.lpill').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      currentSport=liga.key;
+      escanearLiga();
+    };
+    cont.appendChild(btn);
+  });
+}
+
+function renderCompOptions(){
+  var sel=document.getElementById('m-comp');
+  if(!sel)return;
+  sel.innerHTML='';
+  var nombres=Object.keys(DEPORTES[currentDeporte].manualAvg);
+  nombres.forEach(function(nombre){
+    var opt=document.createElement('option');
+    opt.value=nombre;opt.textContent=nombre;
+    sel.appendChild(opt);
+  });
+  sel.selectedIndex=nombres.length-1;
+}
+
+var DESCRIPCIONES_DEPORTE={
+  futbol:'Escribe cualquier partido — Champions, Libertadores, BetPlay, amistosos — y obtén picks con cuota y valor esperado calculados con Poisson.',
+  baloncesto:'Escribe cualquier partido de baloncesto — NBA, WNBA, EuroLeague, NCAAB — y obtén picks de puntos totales, por equipo, 1er cuarto y 1ª mitad.',
+  beisbol:'Escribe cualquier partido de béisbol — MLB, KBO, NPB — y obtén picks de carreras totales, por equipo y primeras 5 entradas (F5).'
+};
+
+function setDeporte(d){
+  if(!DEPORTES[d])return;
+  currentDeporte=d;
+  clearTimeout(refreshTimer);clearInterval(window._cdInterval);
+  scanStore={};manualStore=null;currentSport=null;lastScanTime=null;
+  renderDeporteTabs();
+  renderLigaTabs();
+  renderCompOptions();
+  document.getElementById('scan-cards').innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--text3)"><div style="font-size:36px;margin-bottom:10px">⚡</div><p style="font-size:13px;line-height:1.6">Elige una liga para escanear<br>partidos de las próximas 48h</p></div>';
+  document.getElementById('scan-status').textContent='Selecciona una liga';
+  document.getElementById('next-refresh').textContent='';
+  document.getElementById('manual-result').innerHTML='';
+  document.getElementById('m-home').value='';
+  document.getElementById('m-away').value='';
+  var propBox=document.getElementById('prop-jugador-box');
+  if(propBox)propBox.style.display=(d==='baloncesto')?'block':'none';
+  var desc=document.getElementById('m-desc');
+  if(desc)desc.textContent=DESCRIPCIONES_DEPORTE[d]||'';
 }
 
 // ══════════════════════════════════════════
@@ -1423,19 +1749,8 @@ function showToast(msg){
 // INIT
 // ══════════════════════════════════════════
 (function(){
-  // Construir liga tabs
-  var cont=document.getElementById('liga-tabs');
-  LIGAS.forEach(function(liga){
-    var btn=document.createElement('button');
-    btn.className='lpill';btn.textContent=liga.name;
-    btn.onclick=function(){
-      document.querySelectorAll('.lpill').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active');
-      currentSport=liga.key;
-      escanearLiga();
-    };
-    cont.appendChild(btn);
-  });
+  // Deporte inicial (construye tabs de deporte, ligas y competiciones manuales)
+  setDeporte('futbol');
 
   // Poblar tabla de referencia
   var tbody=document.getElementById('tabla-ref-body');
