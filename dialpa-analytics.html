@@ -440,16 +440,6 @@ function getCuotaMinRecomendada(prob){
   return {prob:55,cuotaMin:1.82,consejo:"Moneda al aire con valor si paga más de 2.00."};
 }
 
-// Evaluar si el pick tiene VALOR REAL según la tabla
-// Un pick tiene valor si su cuota estimada >= cuota mínima recomendada para esa probabilidad
-function tieneValor(prob, cuota){
-  var ref=getCuotaMinRecomendada(prob);
-  return cuota>=ref.cuotaMin;
-}
-
-// Cuota mínima global para mostrar picks
-var CUOTA_MIN = 1.11;
-
 
 function _calcPicks(nm,an,avg,prob){
   var favP=Math.max(prob.home,prob.away)/100;
@@ -547,10 +537,10 @@ function _calcPicks(nm,an,avg,prob){
     return b.cuota-a.cuota;
   });
 
-  // Picks principales: prob >= THRESHOLD Y cuota >= cuota mínima de la tabla
+  // Picks principales: prob >= THRESHOLD (la exigencia de "valor" vs. la tabla
+  // se muestra como referencia por pick, pero no bloquea — ver nota más abajo)
   var picks=msSorted.filter(function(m){
-    var ref=getCuotaMinRecomendada(m.prob);
-    return m.prob>=THRESHOLD && m.cuota>=ref.cuotaMin;
+    return m.prob>=THRESHOLD;
   });
 
   // Si no hay suficientes picks, mostrar los mejores disponibles como referencia
@@ -563,10 +553,9 @@ function _calcPicks(nm,an,avg,prob){
     picks=picks.concat(extras);
   }
 
-  // Tops: picks muy seguros (>=75% de probabilidad) y con valor real vs. la tabla
+  // Tops: picks muy seguros (>=75% de probabilidad del modelo Poisson)
   var tops=msSorted.filter(function(m){
-    var ref=getCuotaMinRecomendada(m.prob);
-    return m.prob>=MUY_SEGURO && m.cuota>=ref.cuotaMin;
+    return m.prob>=MUY_SEGURO;
   }).slice(0,5);
 
   var conf=picks.slice(0,3).reduce(function(s,m){return s+m.prob;},0)/Math.max(picks.slice(0,3).length,1);
@@ -677,13 +666,9 @@ function Bar(p){
 function PickRow(m,i){
   var c=ccol(m.prob);
   var cuota=m.cuota||probToCuota(m.prob);
-  var ev=m.ev!==undefined?m.ev:calcEV(m.prob,cuota);
-  var evCol=ev>=0.05?'#00e87a':ev>=0?'#fbbf24':'#ff4060';
-  var evTxt=ev>=0?'+'+ev.toFixed(3):ev.toFixed(3);
   var esRef=m.esReferencia;
   var ref=getCuotaMinRecomendada(m.prob);
-  var conValor=tieneValor(m.prob,cuota);
-  var borderCol=conValor&&!esRef?c+'55':'#1a1a42';
+  var borderCol=!esRef?c+'55':'#1a1a42';
 
   return '<div class="fade-up" style="animation-delay:'+i*.05+'s;padding:12px 13px;'
     +'background:'+(esRef?'#08081500':'var(--bg2)')+';border-radius:10px;'
@@ -696,29 +681,23 @@ function PickRow(m,i){
     +'<span style="font-size:15px">'+m.icon+'</span>'
     +'<span style="font-size:13px;font-weight:600;color:'+(esRef?'var(--text3)':'var(--text)')+';flex:1;line-height:1.4">'+m.label+'</span>'
     +Tag(m.cat,catcol(m.cat))
-    +(conValor&&!esRef?'<span style="font-size:9px;font-weight:700;font-family:\'JetBrains Mono\',monospace;padding:2px 7px;border-radius:4px;background:#00e87a18;color:#00e87a;border:1px solid #00e87a33">✓ CON VALOR</span>':'')
     +'</div>'
-    // Cuota + EV + Cuota mínima recomendada
+    // Cuota estimada + Cuota mínima real necesaria
     +'<div style="display:flex;align-items:stretch;gap:6px;margin-bottom:6px">'
-    // Cuota estimada
+    // Cuota estimada (guía de mercado, no es la real de tu casa)
     +'<div style="background:#fbbf2418;border:1px solid #fbbf2444;border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
     +'<div style="font-size:8px;color:#fbbf24;letter-spacing:.08em;text-transform:uppercase">CUOTA EST.</div>'
     +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:#fbbf24">'+cuota.toFixed(2)+'</div>'
     +'</div>'
-    // Cuota mínima recomendada según tabla
-    +'<div style="background:'+(conValor?'#00e87a18':'#ff406018')+';border:1px solid '+(conValor?'#00e87a44':'#ff406044')+';border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
-    +'<div style="font-size:8px;color:'+(conValor?'#00e87a':'#ff4060')+';letter-spacing:.06em;text-transform:uppercase">MÍN. TABLA</div>'
-    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:'+(conValor?'#00e87a':'#ff4060')+'">'+ref.cuotaMin.toFixed(2)+'</div>'
-    +'</div>'
-    // EV
-    +'<div style="background:'+evCol+'18;border:1px solid '+evCol+'44;border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
-    +'<div style="font-size:8px;color:'+evCol+';letter-spacing:.08em;text-transform:uppercase">EV</div>'
-    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:'+evCol+'">'+evTxt+'</div>'
+    // Cuota mínima real que necesitas para que valga la pena
+    +'<div style="background:#818cf818;border:1px solid #818cf844;border-radius:7px;padding:5px 10px;text-align:center;flex:1">'
+    +'<div style="font-size:8px;color:#818cf8;letter-spacing:.06em;text-transform:uppercase">MÍN. REAL NECESARIA</div>'
+    +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:800;color:#818cf8">'+ref.cuotaMin.toFixed(2)+'</div>'
     +'</div>'
     +'</div>'
     // Consejo de la tabla
-    +'<div style="font-size:10px;color:'+(conValor?'#6B8CAE':'#444488')+';padding:5px 8px;background:'+(conValor?'#22D3EE0A':'transparent')+';border-radius:6px;margin-bottom:4px">'
-    +'💡 '+ref.consejo
+    +'<div style="font-size:10px;color:#6B8CAE;padding:5px 8px;background:#22D3EE0A;border-radius:6px;margin-bottom:4px">'
+    +'💡 '+ref.consejo+' — compara con la cuota real de tu casa de apuestas, no con "CUOTA EST." (esa es solo una referencia de mercado).'
     +'</div>'
     // Barra probabilidad
     +Bar(m.prob)
@@ -919,18 +898,15 @@ function calcManual(){
       +'<div style="font-size:9px;color:#00e87a;font-family:\'JetBrains Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;border-left:2px solid #00e87a;padding-left:6px;margin-bottom:7px">🏆 PICKS CON VALOR</div>'
       +r.tops.slice(0,4).map(function(m){
         var cuota=m.cuota||probToCuota(m.prob);
-        var ev=m.ev!==undefined?m.ev:calcEV(m.prob,cuota);
-        var evCol=ev>=0.05?'#00e87a':ev>=0?'#fbbf24':'#ff4060';
         return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:6px 9px;background:var(--bg);border-radius:8px">'
           +'<span style="font-size:12px;color:var(--text);flex:1">'+m.icon+' '+m.label+'</span>'
           +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
           +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:800;color:#fbbf24">'+cuota.toFixed(2)+'</span>'
-          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;color:'+evCol+'">EV '+(ev>=0?'+':'')+ev.toFixed(2)+'</span>'
           +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+ccol(m.prob)+'">'+m.prob.toFixed(0)+'%</span>'
           +'</div></div>';
       }).join('')
       +'</div>'
-    :'<div style="padding:8px 13px 0 13px;font-size:12px;color:#fbbf24">⚠️ Ningún pick supera el umbral con cuota ≥1.50. Ajusta el umbral desde el header.</div>')
+    :'<div style="padding:8px 13px 0 13px;font-size:12px;color:#fbbf24">⚠️ Ningún pick superó el '+MUY_SEGURO+'% de probabilidad para este partido. Ajusta el umbral desde el header o intenta otro partido.</div>')
     +'<div style="padding:10px 13px 14px">'
     +'<button onclick="abrirModal(\''+fakeGame.id+'\')" style="width:100%;padding:11px;background:linear-gradient(90deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.5px">⚡ Ver análisis completo + guardar</button>'
     +'</div></div>';
